@@ -1133,7 +1133,7 @@ function initProjectGallery() {
     const filtered = EXPERIMENTS_DATA.filter(item => {
       const matchCat = (currentCategory === "all") || (item.category === currentCategory);
       const q = searchQuery.toLowerCase().trim();
-      const matchSearch = !q || 
+      const matchSearch = !q ||
         item.title.toLowerCase().includes(q) ||
         item.summary.toLowerCase().includes(q) ||
         item.tags.some(t => t.toLowerCase().includes(q)) ||
@@ -1253,7 +1253,7 @@ function initTechnologyMap() {
 // 5. MODAL EXPERIMENT READER
 // ==========================================================================
 
-window.openExperimentModal = function(id) {
+window.openExperimentModal = function (id) {
   const exp = EXPERIMENTS_DATA.find(e => e.id === id);
   if (!exp) return;
 
@@ -1370,7 +1370,7 @@ window.openExperimentModal = function(id) {
   document.body.style.overflow = "hidden";
 };
 
-window.closeExperimentModal = function() {
+window.closeExperimentModal = function () {
   const modal = document.getElementById("experiment-modal");
   if (modal) {
     modal.classList.remove("active");
@@ -1378,7 +1378,7 @@ window.closeExperimentModal = function() {
   }
 };
 
-window.copyModalCode = function() {
+window.copyModalCode = function () {
   const codeEl = document.getElementById("modal-code-text");
   if (!codeEl) return;
   navigator.clipboard.writeText(codeEl.textContent).then(() => {
@@ -1534,7 +1534,7 @@ function initSandboxSimulator() {
 
     if (serialLog) {
       const now = new Date();
-      const timeStr = `${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}.${String(Math.floor(now.getMilliseconds()/100))}`;
+      const timeStr = `${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}.${String(Math.floor(now.getMilliseconds() / 100))}`;
       serialLog.innerHTML = `[${timeStr}] Sonar: ${dist.toFixed(1)}cm | Echo: ${echoMicroseconds}µs | PWM: ${pwmVal}<br>` + serialLog.innerHTML.split("<br>").slice(0, 4).join("<br>");
     }
   }
@@ -1568,7 +1568,7 @@ function initSearchOmniModal() {
         return;
       }
 
-      const hits = EXPERIMENTS_DATA.filter(exp => 
+      const hits = EXPERIMENTS_DATA.filter(exp =>
         exp.title.toLowerCase().includes(q) ||
         exp.summary.toLowerCase().includes(q) ||
         exp.tags.some(t => t.toLowerCase().includes(q)) ||
@@ -1590,7 +1590,7 @@ function initSearchOmniModal() {
   }
 }
 
-window.openSearchModal = function() {
+window.openSearchModal = function () {
   const modal = document.getElementById("search-modal");
   const input = document.getElementById("omni-search-input");
   if (modal) {
@@ -1603,7 +1603,7 @@ window.openSearchModal = function() {
   }
 };
 
-window.closeSearchModal = function() {
+window.closeSearchModal = function () {
   const modal = document.getElementById("search-modal");
   if (modal) modal.classList.remove("active");
 };

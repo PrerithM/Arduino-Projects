@@ -10,14 +10,14 @@ Whether you're a curious beginner or an experienced maker, start anywhere. Read 
 
 ## 🗂️ What's Inside
 
-| # | Category | What you'll learn |
-|---|---|---|
-| [01](./01-Fundamentals/) | **Fundamentals** | Digital/Analog I/O, PWM, Interrupts, Timers, Serial |
-| [02](./02-Sensors/) | **Sensors** | Ultrasonic, IR, Temp, Humidity, Light, IMU, Distance |
-| [03](./03-Actuators/) | **Actuators** | LEDs, Servos, DC & Stepper Motors, Relays, Buzzers |
-| [04](./04-Displays/) | **Displays** | LCD, 7-Segment, Serial Monitor |
-| [05](./05-Communication/) | **Communication** | UART, I2C, SPI, Bluetooth, Wi-Fi |
-| [06](./06-Automation/) | **Automation** | Smart Lighting, Security, Env Monitoring, Motor Control |
+| #                        | Category                | What you'll learn                                       |
+| ------------------------ | ----------------------- | ------------------------------------------------------- |
+| [01](./01-Fundamentals/)  | **Fundamentals**  | Digital/Analog I/O, PWM, Interrupts, Timers, Serial     |
+| [02](./02-Sensors/)       | **Sensors**       | Ultrasonic, IR, Temp, Humidity, Light, IMU, Distance    |
+| [03](./03-Actuators/)     | **Actuators**     | LEDs, Servos, DC & Stepper Motors, Relays, Buzzers      |
+| [04](./04-Displays/)      | **Displays**      | LCD, 7-Segment, Serial Monitor                          |
+| [05](./05-Communication/) | **Communication** | UART, I2C, SPI, Bluetooth, Wi-Fi                        |
+| [06](./06-Automation/)    | **Automation**    | Smart Lighting, Security, Env Monitoring, Motor Control |
 
 ---
 
