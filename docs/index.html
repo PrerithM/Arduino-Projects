@@ -1,470 +1,827 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
-
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Arduino Projects Cookbook — Modular Hardware Recipes & Building Blocks</title>
-  <meta name="description"
-    content="A modular, mix-and-match collection of 31+ documented Arduino projects, wiring diagrams, sketches, and recipes for makers, students, and engineers.">
-
-  <!-- Google Fonts -->
+  <title>PRERITH.M — Hardware Lab | Experiments in Electronics & Physical Computing</title>
+  <meta name="description" content="A live engineering notebook and hardware portfolio documenting experiments in Arduino, embedded systems, sensors, robotics, and physical computing.">
+  
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&family=Outfit:wght@400;600;700;800&display=swap"
-    rel="stylesheet">
-
-  <!-- Highlight.js for Arduino Code Highlighting -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"
-    id="hljs-theme">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
-
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <!-- Custom Stylesheet -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Styles -->
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-  <!-- Navigation Bar -->
-  <header class="navbar">
-    <div class="nav-container">
-      <a href="#" class="nav-brand" aria-label="Arduino Cookbook Home">
-        <div class="brand-logo-icon">
-          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="arduino-infinity-svg">
-            <circle cx="16" cy="24" r="10" stroke="currentColor" stroke-width="4.5" />
-            <circle cx="32" cy="24" r="10" stroke="currentColor" stroke-width="4.5" />
-            <path d="M12 24H20M28 24H36M32 20V28" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-          </svg>
-        </div>
+  <!-- Ambient PCB background grid & glow -->
+  <div class="bg-grid-pattern"></div>
+  <div class="ambient-glow glow-top-left"></div>
+  <div class="ambient-glow glow-top-right"></div>
+  <div class="ambient-glow glow-center"></div>
+
+  <!-- FLOATING GLASS NAVBAR -->
+  <header class="navbar-wrapper">
+    <nav class="navbar glass-panel">
+      <a href="#hero" class="brand-logo">
+        <svg class="pulse-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 16H8L11 6L16 26L21 11L24 16H30" stroke="#35C98A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
         <div class="brand-text">
-          <span class="brand-title">Arduino</span>
-          <span class="brand-subtitle">Projects</span>
+          <span class="brand-name">PRERITH.M</span>
+          <span class="brand-badge">HW LAB</span>
         </div>
       </a>
 
-      <nav class="nav-links" id="navMenu">
-        <a href="#categories" class="nav-link">Categories</a>
-        <a href="#mixer" class="nav-link">Recipe Mixer</a>
-        <a href="#explorer" class="nav-link">Projects</a>
-        <a href="#architecture" class="nav-link">Architecture</a>
-        <a href="#about" class="nav-link">About</a>
-      </nav>
+      <ul class="nav-links">
+        <li><a href="#hero" class="nav-link active">Home</a></li>
+        <li><a href="#projects" class="nav-link">Projects</a></li>
+        <li><a href="#tech-map" class="nav-link">Components</a></li>
+        <li><a href="#journal" class="nav-link">Journal</a></li>
+        <li><a href="#journey" class="nav-link">Journey</a></li>
+        <li><a href="#sandbox" class="nav-link">Sandbox</a></li>
+      </ul>
 
       <div class="nav-actions">
-        <!-- Live Search Trigger Button -->
-        <button class="icon-btn search-trigger-btn" id="searchTriggerBtn" title="Search Projects (Press /)">
-          <i data-lucide="search"></i>
-          <span class="search-shortcut">/</span>
+        <button id="search-btn" class="nav-icon-btn" title="Search experiments (Ctrl+K)" aria-label="Search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <span class="kbd-shortcut">⌘K</span>
         </button>
-
-        <!-- Theme Toggle Button -->
-        <button class="icon-btn theme-toggle-btn" id="themeToggleBtn" title="Toggle Dark/Light Mode"
-          aria-label="Toggle Theme">
-          <i data-lucide="sun" class="sun-icon"></i>
-          <i data-lucide="moon" class="moon-icon"></i>
-        </button>
-
-        <!-- GitHub Repository Button -->
-        <a href="https://github.com/PrerithM/Arduino-Projects" target="_blank" rel="noopener noreferrer"
-          class="btn btn-secondary nav-github-btn">
-          <i data-lucide="github"></i>
+        <a href="https://github.com/PrerithM/Arduino-Projects" target="_blank" rel="noopener noreferrer" class="btn-github-nav">
+          <i class="fa-brands fa-github"></i>
           <span>GitHub</span>
+          <i class="fa-solid fa-arrow-up-right-from-square nav-ext-icon"></i>
         </a>
-
-        <!-- Mobile Menu Hamburger -->
-        <button class="mobile-menu-toggle" id="mobileMenuBtn" aria-label="Toggle Navigation Menu">
-          <i data-lucide="menu"></i>
-        </button>
       </div>
-    </div>
+    </nav>
   </header>
 
-  <!-- Main Content Container -->
-  <main>
+  <main class="container">
 
-    <!-- Hero Section -->
-    <section class="hero-section" id="hero">
-      <div class="hero-bg-glow"></div>
-      <div class="hero-circuit-overlay"></div>
-
-      <div class="container hero-grid">
-        <div class="hero-content">
-          <div class="hero-badge">
-            <span class="pulse-dot"></span>
-            <span>⚡ 31 Modular Recipes · 6 Core Categories · 100% Documented</span>
-          </div>
-
-          <h1 class="hero-title">
-            Build Hardware Like a Pro. <br>
-            <span class="gradient-text">Mix, Match & Create.</span>
-          </h1>
-
-          <p class="hero-description">
-            A comprehensive, cookbook-style portfolio of Arduino building blocks. Pick any sensor, combine it with an
-            actuator, wire it with step-by-step ASCII guides, and paste production-ready sketches to make your dream
-            project.
-          </p>
-
-          <div class="hero-cta-group">
-            <a href="#explorer" class="btn btn-primary btn-lg">
-              <i data-lucide="compass"></i>
-              <span>Explore All Recipes</span>
-            </a>
-            <a href="#mixer" class="btn btn-glass btn-lg">
-              <i data-lucide="sparkles"></i>
-              <span>Recipe Mixer</span>
-            </a>
-          </div>
-
-          <!-- Hero Quick Stats Counter -->
-          <div class="hero-stats">
-            <div class="stat-item">
-              <span class="stat-value">31+</span>
-              <span class="stat-label">Modular Recipes</span>
-            </div>
-            <div class="stat-divider"></div>
-            <div class="stat-item">
-              <span class="stat-value">6</span>
-              <span class="stat-label">Core Categories</span>
-            </div>
-            <div class="stat-divider"></div>
-            <div class="stat-item">
-              <span class="stat-value">100%</span>
-              <span class="stat-label">Tested Code & Wiring</span>
-            </div>
-          </div>
+    <!-- 1. HERO SECTION -->
+    <section id="hero" class="hero-section">
+      <div class="hero-content">
+        <div class="eyebrow-chip">
+          <span class="pulse-dot"></span>
+          <span class="eyebrow-text">HARDWARE × CODE × CREATIVITY</span>
         </div>
 
-        <div class="hero-visual">
-          <div class="hero-image-wrapper">
-            <img src="assets/images/hero.jpg" alt="Arduino Prototyping Workbench" class="hero-main-img" loading="eager">
+        <h1 class="hero-title">
+          HARDWARE<br>
+          <span class="gradient-text">LAB</span>
+        </h1>
 
-            <!-- Floating Feature Pills -->
-            <div class="floating-tag tag-top-right">
-              <i data-lucide="cpu"></i>
-              <span>Hardware-Tested</span>
-            </div>
-            <div class="floating-tag tag-bottom-left">
-              <i data-lucide="git-merge"></i>
-              <span>Plug-and-Play Recipes</span>
-            </div>
+        <p class="hero-subtitle">
+          Experiments in electronics, embedded systems, and physical computing.<br>
+          <span class="hero-ethos">From blinking LEDs to intelligent machines.</span>
+        </p>
+
+        <div class="hero-cta-group">
+          <a href="#projects" class="btn btn-primary">
+            <span>Explore Projects</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+          <a href="https://github.com/PrerithM/Arduino-Projects" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+            <i class="fa-brands fa-github"></i>
+            <span>View on GitHub</span>
+          </a>
+        </div>
+
+        <!-- Metric badges -->
+        <div class="hero-metrics">
+          <div class="metric-item">
+            <span class="metric-val" id="metric-exp-count">24+</span>
+            <span class="metric-lbl">Experiments</span>
+          </div>
+          <div class="metric-divider"></div>
+          <div class="metric-item">
+            <span class="metric-val">15+</span>
+            <span class="metric-lbl">Components</span>
+          </div>
+          <div class="metric-divider"></div>
+          <div class="metric-item">
+            <span class="metric-val">∞</span >
+            <span class="metric-lbl">Learning</span>
           </div>
         </div>
       </div>
-    </section>
 
-    <!-- Categories Section -->
-    <section class="section categories-section" id="categories">
-      <div class="container">
-        <div class="section-header">
-          <div class="section-badge">Structured Learning Path</div>
-          <h2 class="section-title">Six Pillars of Physical Computing</h2>
-          <p class="section-subtitle">
-            Progress from elementary digital logic to intelligent autonomous robotics. Click any category to filter the
-            recipe catalog.
-          </p>
-        </div>
-
-        <div class="categories-grid" id="categoriesGrid">
-          <!-- Populated dynamically via JavaScript -->
-        </div>
-      </div>
-    </section>
-
-    <!-- Interactive Cookbook Recipe Mixer -->
-    <section class="section mixer-section" id="mixer">
-      <div class="container">
-        <div class="mixer-card">
-          <div class="mixer-header">
-            <div class="section-badge"><i data-lucide="sparkles" class="badge-icon"></i> Interactive Generator</div>
-            <h2 class="section-title">The Project Recipe Mixer</h2>
-            <p class="section-subtitle">
-              Select your available components below to synthesize instant project recipes, wiring instructions, and
-              estimated difficulty.
-            </p>
+      <!-- Hero Visual Board & Circuit -->
+      <div class="hero-visual">
+        <div class="hardware-card-frame">
+          <div class="card-glow-layer"></div>
+          
+          <!-- Handwritten Note Accent -->
+          <div class="handwritten-note top-right-note">
+            <span>Ideas</span>
+            <span>Circuits</span>
+            <span>Code</span>
+            <span class="note-highlight">Real World Impact. ↗</span>
           </div>
 
-          <div class="mixer-builder-grid">
-            <!-- Column 1: Input / Sensor -->
-            <div class="mixer-col">
-              <label class="mixer-label" for="mixerSensorSelect">
-                <span class="step-num">1</span>
-                <span>Choose an Input / Sensor</span>
-              </label>
-              <select id="mixerSensorSelect" class="mixer-select">
-                <option value="ultrasonic">🦇 HC-SR04 Ultrasonic Sonar</option>
-                <option value="temp">🌡️ DS18B20 Digital Temp</option>
-                <option value="humidity">💧 DHT11/22 Humidity & Temp</option>
-                <option value="light">☀️ LDR Light Photoresistor</option>
-                <option value="imu">🧭 MPU6050 6-DOF Accel & Gyro</option>
-                <option value="button">🔘 Tactile Pushbutton (Digital I/O)</option>
-                <option value="pot">🎛️ 10kΩ Potentiometer (Analog)</option>
-              </select>
-            </div>
-
-            <!-- Plus Sign Connector -->
-            <div class="mixer-plus"><i data-lucide="plus"></i></div>
-
-            <!-- Column 2: Output / Actuator -->
-            <div class="mixer-col">
-              <label class="mixer-label" for="mixerActuatorSelect">
-                <span class="step-num">2</span>
-                <span>Choose an Output / Actuator</span>
-              </label>
-              <select id="mixerActuatorSelect" class="mixer-select">
-                <option value="buzzer">🔊 Piezo Audio Buzzer</option>
-                <option value="servo">🦾 SG90 Precision Servo</option>
-                <option value="motor">🚗 L298N DC Gear Motor</option>
-                <option value="stepper">⚙️ 28BYJ-48 Stepper Motor</option>
-                <option value="relay">💡 5V Opto Relay (AC Power)</option>
-                <option value="led">🌈 WS2812B NeoPixel RGB LEDs</option>
-              </select>
-            </div>
-
-            <!-- Plus Sign Connector -->
-            <div class="mixer-plus"><i data-lucide="plus"></i></div>
-
-            <!-- Column 3: Display or Protocol (Optional) -->
-            <div class="mixer-col">
-              <label class="mixer-label" for="mixerDisplaySelect">
-                <span class="step-num">3</span>
-                <span>Choose Display / Interface</span>
-              </label>
-              <select id="mixerDisplaySelect" class="mixer-select">
-                <option value="lcd">🖥️ 16x2 I2C Character LCD</option>
-                <option value="seven_segment">🔢 4-Digit 7-Segment Display</option>
-                <option value="bluetooth">📱 HC-05 Smartphone Bluetooth</option>
-                <option value="wifi">🌐 ESP8266 / ESP32 Cloud Web Server</option>
-                <option value="serial">📊 Serial Monitor / Waveform Plotter</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Live Recipe Synthesis Result Card -->
-          <div class="mixer-result-box" id="mixerResultBox">
-            <div class="result-header">
-              <div class="result-badge" id="resultDifficulty">Beginner Friendly</div>
-              <h3 class="result-title" id="resultTitle">Synthesizing Recipe...</h3>
-            </div>
-            <p class="result-description" id="resultDesc">
-              Combine these components to build an interactive smart device.
-            </p>
-
-            <div class="result-specs-grid">
-              <div class="spec-card">
-                <span class="spec-title">⚡ How They Work Together</span>
-                <span class="spec-text" id="resultLogic">Sensor feeds continuous data to Arduino which executes
-                  threshold logic.</span>
+          <!-- Interactive Microcontroller Interactive Board Preview -->
+          <div class="interactive-board-canvas" id="hero-board-container">
+            <div class="board-pcb">
+              <div class="board-header">
+                <span class="board-brand">ARDUINO <span class="board-model">UNO R3</span></span>
+                <span class="board-cpu">ATmega328P</span>
               </div>
-              <div class="spec-card">
-                <span class="spec-title">🔌 Pins & Wiring Preview</span>
-                <span class="spec-text" id="resultWiring">Uses D2-D10 with shared 5V/GND power rails.</span>
+              <div class="board-pins-top">
+                <span class="pin-indicator pin-active" title="D13 (Built-in LED)">D13</span>
+                <span class="pin-indicator pin-pwm" title="D11 (PWM)">D11</span>
+                <span class="pin-indicator pin-pwm" title="D10 (PWM)">D10</span>
+                <span class="pin-indicator pin-pwm" title="D9 (TRIG)">D9</span>
+                <span class="pin-indicator" title="D8">D8</span>
+                <span class="pin-indicator" title="D7">D7</span>
+              </div>
+              <div class="board-center-chip">
+                <div class="chip-mcu">
+                  <div class="chip-label">ATMEGA328P-PU</div>
+                  <div class="chip-leds">
+                    <span class="led-blinker led-green" title="PWR (ON)"></span>
+                    <span class="led-blinker led-amber" id="hero-l-led" title="L (D13 Output)"></span>
+                    <span class="led-blinker led-blue" id="hero-rx-led" title="RX"></span>
+                    <span class="led-blinker led-blue" id="hero-tx-led" title="TX"></span>
+                  </div>
+                </div>
+              </div>
+              <div class="board-pins-bottom">
+                <span class="pin-indicator pin-power" title="5V VCC">5V</span>
+                <span class="pin-indicator pin-power" title="GND">GND</span>
+                <span class="pin-indicator pin-analog" title="A0 (LDR/Pot)">A0</span>
+                <span class="pin-indicator pin-analog" title="A4 (SDA)">A4</span>
+                <span class="pin-indicator pin-analog" title="A5 (SCL)">A5</span>
               </div>
             </div>
 
-            <div class="result-actions">
-              <button class="btn btn-primary" id="mixerFindRecipeBtn">
-                <i data-lucide="book-open"></i>
-                <span>Jump to Matching Recipe</span>
-              </button>
-              <button class="btn btn-secondary" id="mixerCopySpecBtn">
-                <i data-lucide="copy"></i>
-                <span>Copy Project Idea</span>
-              </button>
+            <!-- Mini breadboard simulation widget -->
+            <div class="mini-breadboard">
+              <div class="component-led-stack">
+                <div class="led-bulb led-red active-glow" id="hero-breadboard-led"></div>
+                <div class="resistor-bar"></div>
+              </div>
+              <div class="component-sensor-sonar">
+                <div class="sonar-eye"></div>
+                <div class="sonar-eye"></div>
+                <span class="sonar-txt">HC-SR04</span>
+              </div>
             </div>
+          </div>
+
+          <!-- Bottom handwritten quote -->
+          <div class="handwritten-quote">
+            <p>“Small circuits. Big possibilities.”</p>
+            <span class="quote-author">— PRERITH M.</span>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Project Explorer Section -->
-    <section class="section explorer-section" id="explorer">
-      <div class="container">
-        <div class="section-header">
-          <div class="section-badge">Cookbook Recipe Index</div>
-          <h2 class="section-title">Explore All 31 Projects</h2>
-          <p class="section-subtitle">
-            Search by keyword, filter by category, or open any card to view detailed circuit schematics, pin tables, and
-            commented code.
+    <!-- 2. LAB STATUS & FEATURED EXPERIMENT SECTION -->
+    <section id="status" class="lab-status-section">
+      <div class="status-grid">
+        
+        <!-- Currently Exploring Radar -->
+        <div class="glass-panel status-card">
+          <div class="panel-header">
+            <div class="header-title">
+              <i class="fa-solid fa-satellite-dish panel-icon green-accent"></i>
+              <h3>LAB STATUS</h3>
+            </div>
+            <span class="status-live-tag"><span class="live-blink"></span> ACTIVE LAB</span>
+          </div>
+
+          <p class="status-subtitle">CURRENTLY EXPLORING</p>
+
+          <div class="progress-stack">
+            <div class="skill-meter">
+              <div class="meter-info">
+                <span class="meter-label"><i class="fa-solid fa-microchip color-arduino"></i> Arduino & Embedded</span>
+                <span class="meter-pct">90%</span>
+              </div>
+              <div class="meter-bar-track">
+                <div class="meter-bar-fill fill-arduino" style="width: 90%;"></div>
+              </div>
+            </div>
+
+            <div class="skill-meter">
+              <div class="meter-info">
+                <span class="meter-label"><i class="fa-solid fa-wave-square color-sensors"></i> Sensor Fusion & I/O</span>
+                <span class="meter-pct">75%</span>
+              </div>
+              <div class="meter-bar-track">
+                <div class="meter-bar-fill fill-sensors" style="width: 75%;"></div>
+              </div>
+            </div>
+
+            <div class="skill-meter">
+              <div class="meter-info">
+                <span class="meter-label"><i class="fa-solid fa-robot color-robotics"></i> Robotics & Actuators</span>
+                <span class="meter-pct">55%</span>
+              </div>
+              <div class="meter-bar-track">
+                <div class="meter-bar-fill fill-robotics" style="width: 55%;"></div>
+              </div>
+            </div>
+
+            <div class="skill-meter">
+              <div class="meter-info">
+                <span class="meter-label"><i class="fa-solid fa-wifi color-iot"></i> IoT & Wireless Protocols</span>
+                <span class="meter-pct">45%</span>
+              </div>
+              <div class="meter-bar-track">
+                <div class="meter-bar-fill fill-iot" style="width: 45%;"></div>
+              </div>
+            </div>
+
+            <div class="skill-meter">
+              <div class="meter-info">
+                <span class="meter-label"><i class="fa-solid fa-eye color-cv"></i> Edge AI & Computer Vision</span>
+                <span class="meter-pct">35%</span>
+              </div>
+              <div class="meter-bar-track">
+                <div class="meter-bar-fill fill-cv" style="width: 35%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="status-footer-meta">
+            <div class="meta-row">
+              <span class="meta-name">Last experiment:</span>
+              <span class="meta-val highlight">Advanced Rover (Tele-op + Sonar)</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-name">Next build:</span>
+              <span class="meta-val text-muted">Edge AI Visual Obstacle Avoidance</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Featured Project Hero Card -->
+        <div class="glass-panel featured-project-card" id="featured-project-box">
+          <div class="featured-badge">
+            <i class="fa-solid fa-star"></i>
+            <span>FEATURED EXPERIMENT</span>
+          </div>
+
+          <div class="featured-body">
+            <div class="featured-info">
+              <h3 class="featured-title">Advanced Rover</h3>
+              <p class="featured-desc">
+                AI-powered robotic chassis with dual-motor differential drive, ultrasonic obstacle evasion, and live telemetry.
+              </p>
+
+              <div class="tag-cloud">
+                <span class="tag">Arduino UNO</span>
+                <span class="tag">L298N Driver</span>
+                <span class="tag">HC-SR04</span>
+                <span class="tag">Bluetooth</span>
+                <span class="tag">C++</span>
+              </div>
+
+              <button class="btn btn-primary btn-sm btn-open-exp" data-id="exp-rover">
+                <span>View Experiment</span>
+                <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+
+            <div class="featured-visual-art">
+              <div class="rover-schematic-preview">
+                <div class="rover-chassis-model">
+                  <div class="rover-body-box">
+                    <div class="rover-camera-turret"></div>
+                    <div class="sonar-sensor-bracket">
+                      <span class="eye-lens"></span>
+                      <span class="eye-lens"></span>
+                    </div>
+                  </div>
+                  <div class="wheel wheel-fl"></div>
+                  <div class="wheel wheel-fr"></div>
+                  <div class="wheel wheel-bl"></div>
+                  <div class="wheel wheel-br"></div>
+                </div>
+                <div class="scan-cone"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Philosophy / Notebook Quote Card -->
+        <div class="glass-panel quote-card">
+          <div class="quote-symbol">“</div>
+          <p class="quote-text">
+            Learning never stops, it just gets more exciting.
+          </p>
+          <div class="pcb-wireframe-art">
+            <svg viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10 30H50L70 10H130L150 30H190" stroke="rgba(77, 163, 255, 0.4)" stroke-width="2" stroke-dasharray="4 4"/>
+              <circle cx="50" cy="30" r="4" fill="#35C98A"/>
+              <circle cx="130" cy="10" r="4" fill="#4DA3FF"/>
+              <circle cx="150" cy="30" r="4" fill="#E34B4B"/>
+            </svg>
+          </div>
+          <p class="quote-annotation">
+            Documenting my journey in electronics, embedded systems, and beyond.
           </p>
         </div>
 
-        <!-- Filter Controls & Search Bar -->
-        <div class="explorer-controls">
+      </div>
+    </section>
+
+    <!-- 3. PROJECT EXPLORER (MAIN GALLERY) -->
+    <section id="projects" class="projects-section">
+      <div class="section-header">
+        <div class="header-left">
+          <span class="section-label">LAB ARCHIVE</span>
+          <h2 class="section-title">EXPLORE PROJECTS</h2>
+          <p class="section-desc">Every folder is an interactive experiment. Browse, simulate, and inspect circuits.</p>
+        </div>
+
+        <!-- Search & Filter Controls -->
+        <div class="gallery-controls">
           <div class="search-box">
-            <i data-lucide="search" class="search-icon"></i>
-            <input type="text" id="projectSearchInput" class="search-input"
-              placeholder="Search by name, sensor, pin, or concept (e.g., 'servo', 'I2C', 'temp')..."
-              autocomplete="off">
-            <button class="clear-search-btn" id="clearSearchBtn" aria-label="Clear Search">
-              <i data-lucide="x"></i>
-            </button>
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="project-search-input" placeholder="Search sensors, modules, code..." autocomplete="off">
+            <button id="clear-search-btn" class="clear-btn" aria-label="Clear search"><i class="fa-solid fa-xmark"></i></button>
           </div>
 
-          <!-- Category Filter Pills -->
-          <div class="filter-pills" id="filterPillsContainer">
-            <button class="filter-pill active" data-category="all">
-              <span>All Recipes</span>
-              <span class="pill-count" id="countAll">31</span>
-            </button>
-            <button class="filter-pill" data-category="01-Fundamentals">
-              <span>⚡ Fundamentals</span>
-              <span class="pill-count">6</span>
-            </button>
-            <button class="filter-pill" data-category="02-Sensors">
-              <span>📡 Sensors</span>
-              <span class="pill-count">7</span>
-            </button>
-            <button class="filter-pill" data-category="03-Actuators">
-              <span>⚙️ Actuators</span>
-              <span class="pill-count">6</span>
-            </button>
-            <button class="filter-pill" data-category="04-Displays">
-              <span>🖥️ Displays</span>
-              <span class="pill-count">3</span>
-            </button>
-            <button class="filter-pill" data-category="05-Communication">
-              <span>🌐 Communication</span>
-              <span class="pill-count">5</span>
-            </button>
-            <button class="filter-pill" data-category="06-Automation">
-              <span>🤖 Automation</span>
-              <span class="pill-count">4</span>
-            </button>
+          <div class="filter-tabs" id="category-filters">
+            <button class="filter-tab active" data-filter="all">All</button>
+            <button class="filter-tab" data-filter="basic">Basic</button>
+            <button class="filter-tab" data-filter="sensors">Sensors</button>
+            <button class="filter-tab" data-filter="motors">Motors</button>
+            <button class="filter-tab" data-filter="displays">Displays</button>
+            <button class="filter-tab" data-filter="iot">IoT & Comms</button>
+            <button class="filter-tab" data-filter="robotics">Robotics</button>
           </div>
         </div>
+      </div>
 
-        <!-- Projects Card Grid -->
-        <div class="projects-grid" id="projectsGrid">
-          <!-- Populated dynamically via JavaScript -->
-        </div>
-
-        <!-- Empty Search State -->
-        <div class="empty-state" id="emptyState" style="display: none;">
-          <div class="empty-icon"><i data-lucide="search-x"></i></div>
-          <h3 class="empty-title">No matching recipes found</h3>
-          <p class="empty-text">Try searching for broader terms like "motor", "I2C", "timer", or clear your filter.</p>
-          <button class="btn btn-secondary" id="resetFiltersBtn">Reset All Filters</button>
-        </div>
+      <!-- Project Cards Grid -->
+      <div class="projects-grid" id="projects-container">
+        <!-- Injected via JavaScript -->
       </div>
     </section>
 
-    <!-- Architecture & Cookbook Map Section -->
-    <section class="section architecture-section" id="architecture">
-      <div class="container">
-        <div class="section-header">
-          <div class="section-badge">System Topology</div>
-          <h2 class="section-title">The Modular Architecture</h2>
-          <p class="section-subtitle">
-            How building blocks interconnect seamlessly inside the Arduino ecosystem.
-          </p>
+    <!-- 4. INTERACTIVE HARDWARE STACK (TECHNOLOGY MAP) -->
+    <section id="tech-map" class="tech-map-section">
+      <div class="section-header center-header">
+        <span class="section-label">ARCHITECTURE</span>
+        <h2 class="section-title">THE HARDWARE STACK</h2>
+        <p class="section-desc">How physical computing components map together. Click any component to filter matching experiments.</p>
+      </div>
+
+      <div class="glass-panel stack-tree-container">
+        <!-- Root Node -->
+        <div class="tree-root-node">
+          <div class="stack-node root">
+            <i class="fa-solid fa-microchip"></i>
+            <span>Physical Computing</span>
+          </div>
         </div>
 
-        <div class="architecture-visual-card">
-          <div class="arch-flow-grid">
-            <div class="arch-node arch-input">
-              <div class="arch-node-header">
-                <i data-lucide="radio"></i>
-                <h4>1. Inputs & Sensing</h4>
-              </div>
-              <p>Sonar, Infrared, Temperature, Humidity, LDR, IMU, Laser Distance</p>
-              <div class="arch-tags">
-                <span>ADC (0-1023)</span>
-                <span>Interrupts</span>
-                <span>1-Wire</span>
+        <!-- Connecting Lines SVG -->
+        <div class="tree-svg-branches">
+          <svg class="tree-lines" viewBox="0 0 800 60" preserveAspectRatio="none">
+            <path d="M 400,0 L 400,30 L 133,30 L 133,60" stroke="rgba(255,255,255,0.15)" stroke-width="2" fill="none"/>
+            <path d="M 400,0 L 400,60" stroke="rgba(255,255,255,0.15)" stroke-width="2" fill="none"/>
+            <path d="M 400,0 L 400,30 L 667,30 L 667,60" stroke="rgba(255,255,255,0.15)" stroke-width="2" fill="none"/>
+          </svg>
+        </div>
+
+        <!-- Primary Categories -->
+        <div class="tree-categories-row">
+          <!-- Sensors (See) -->
+          <div class="tree-branch">
+            <div class="stack-node category-node sensors-node">
+              <i class="fa-solid fa-eye"></i>
+              <div class="node-texts">
+                <span class="node-title">Sensors</span>
+                <span class="node-role">(See)</span>
               </div>
             </div>
+            <div class="leaf-chips">
+              <button class="comp-chip" data-component="HC-SR04"><i class="fa-solid fa-satellite-dish"></i> HC-SR04</button>
+              <button class="comp-chip" data-component="LDR"><i class="fa-solid fa-sun"></i> LDR Light</button>
+              <button class="comp-chip" data-component="DHT11"><i class="fa-solid fa-temperature-half"></i> DHT11</button>
+              <button class="comp-chip" data-component="MPU6050"><i class="fa-solid fa-compass"></i> MPU6050 IMU</button>
+              <button class="comp-chip" data-component="IR"><i class="fa-solid fa-circle-dot"></i> IR Receiver</button>
+            </div>
+          </div>
 
-            <div class="arch-arrow"><i data-lucide="arrow-right"></i></div>
-
-            <div class="arch-node arch-brain">
-              <div class="arch-node-header">
-                <i data-lucide="cpu"></i>
-                <h4>2. Processing Core</h4>
-              </div>
-              <p>Arduino Uno / Nano / ESP32 with Non-Blocking State Machines & Protocols</p>
-              <div class="arch-tags">
-                <span>millis() Timers</span>
-                <span>UART / I2C / SPI</span>
-                <span>PWM Engine</span>
+          <!-- Controllers (Think) -->
+          <div class="tree-branch">
+            <div class="stack-node category-node controllers-node">
+              <i class="fa-solid fa-brain"></i>
+              <div class="node-texts">
+                <span class="node-title">Controllers</span>
+                <span class="node-role">(Think)</span>
               </div>
             </div>
+            <div class="leaf-chips">
+              <button class="comp-chip active-chip" data-component="Arduino Uno"><i class="fa-solid fa-microchip"></i> Arduino Uno</button>
+              <button class="comp-chip" data-component="ATmega328P"><i class="fa-solid fa-bolt"></i> ATmega328P</button>
+              <button class="comp-chip" data-component="ESP8266"><i class="fa-solid fa-wifi"></i> ESP8266 Wi-Fi</button>
+              <button class="comp-chip" data-component="Raspberry Pi"><i class="fa-brands fa-raspberry-pi"></i> Raspberry Pi</button>
+            </div>
+          </div>
 
-            <div class="arch-arrow"><i data-lucide="arrow-right"></i></div>
-
-            <div class="arch-node arch-output">
-              <div class="arch-node-header">
-                <i data-lucide="activity"></i>
-                <h4>3. Outputs & Displays</h4>
+          <!-- Actuators (Do) -->
+          <div class="tree-branch">
+            <div class="stack-node category-node actuators-node">
+              <i class="fa-solid fa-gears"></i>
+              <div class="node-texts">
+                <span class="node-title">Actuators & Out</span>
+                <span class="node-role">(Do)</span>
               </div>
-              <p>Servos, DC Motors, Steppers, Relays, NeoPixels, 16x2 LCDs, 7-Segments</p>
-              <div class="arch-tags">
-                <span>H-Bridge Drive</span>
-                <span>Optoisolation</span>
-                <span>Pixel UI</span>
-              </div>
+            </div>
+            <div class="leaf-chips">
+              <button class="comp-chip" data-component="LED"><i class="fa-regular fa-lightbulb"></i> LEDs / PWM</button>
+              <button class="comp-chip" data-component="Servo"><i class="fa-solid fa-arrows-spin"></i> SG90 Servo</button>
+              <button class="comp-chip" data-component="DC Motor"><i class="fa-solid fa-gear"></i> DC / L298N</button>
+              <button class="comp-chip" data-component="LCD"><i class="fa-solid fa-desktop"></i> 16x2 LCD</button>
+              <button class="comp-chip" data-component="Buzzer"><i class="fa-solid fa-volume-high"></i> Piezo Buzzer</button>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- About & Recognition Section -->
-    <section class="section about-section" id="about">
-      <div class="container">
-        <div class="about-card">
-          <div class="about-grid">
-            <div class="about-info">
-              <div class="section-badge">Maker Journey</div>
-              <h2 class="section-title">Behind the Cookbook</h2>
-              <p class="about-paragraph">
-                This repository is a curated compilation of real-world hardware projects, prototypes, and laboratory
-                experiments built, wired, and verified with love for open-source physical computing.
-              </p>
-              <p class="about-paragraph">
-                Every sketch is written with clean indentation, non-blocking timers, and zero-compromise documentation
-                so anyone from an elementary student to an embedded systems engineer can pick up these modules and
-                invent something remarkable.
-              </p>
+    <!-- 5. JOURNEY & LEARNING TIMELINE -->
+    <section id="journey" class="journey-section">
+      <div class="journey-grid">
+        
+        <!-- Timeline Column -->
+        <div class="timeline-column glass-panel">
+          <div class="panel-header">
+            <div class="header-title">
+              <i class="fa-solid fa-timeline panel-icon blue-accent"></i>
+              <h3>MY JOURNEY & EVOLUTION</h3>
+            </div>
+          </div>
 
-              <div class="about-badges-row">
-                <div class="highlight-chip">
-                  <i data-lucide="shield-check"></i>
-                  <span>Zero-Jargon Explanations</span>
-                </div>
-                <div class="highlight-chip">
-                  <i data-lucide="zap"></i>
-                  <span>Production Ready .ino</span>
-                </div>
-                <div class="highlight-chip">
-                  <i data-lucide="heart"></i>
-                  <span>Open Source MIT</span>
-                </div>
+          <div class="timeline-stepper">
+            
+            <div class="timeline-item">
+              <div class="timeline-marker">
+                <div class="marker-dot"></div>
+                <div class="marker-year">2022</div>
+              </div>
+              <div class="timeline-body">
+                <h4>Foundational Code & Logic</h4>
+                <p>Started programming with Python & JavaScript, learning control flow, data structures, and algorithmic thinking.</p>
               </div>
             </div>
 
-            <div class="about-cta-box">
-              <h3>Ready to start building?</h3>
-              <p>Clone the repository, open your Arduino IDE, and wire your first project in minutes.</p>
+            <div class="timeline-item">
+              <div class="timeline-marker">
+                <div class="marker-dot"></div>
+                <div class="marker-year">2023</div>
+              </div>
+              <div class="timeline-body">
+                <h4>First Arduino & Electronics</h4>
+                <p>Blinking first LEDs, understanding Ohm's Law, pull-up/pull-down resistors, digital I/O, analog reading, and PWM signals.</p>
+              </div>
+            </div>
 
-              <div class="git-clone-box">
-                <code>git clone https://github.com/PrerithM/Arduino-Projects.git</code>
-                <button class="copy-clone-btn" id="copyCloneBtn" title="Copy git clone command">
-                  <i data-lucide="copy"></i>
-                </button>
+            <div class="timeline-item">
+              <div class="timeline-marker">
+                <div class="marker-dot"></div>
+                <div class="marker-year">2024</div>
+              </div>
+              <div class="timeline-body">
+                <h4>Sensors, Motors & Protocol Buses</h4>
+                <p>Integrating sonar distance, humidity, temperature, servo motor kinematics, I2C / SPI communication buses, and LCDs.</p>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-marker">
+                <div class="marker-dot active-dot"></div>
+                <div class="marker-year highlight">2025</div>
+              </div>
+              <div class="timeline-body">
+                <h4>Robotics, Autonomy & Control Loops</h4>
+                <p>Building differential drive mobile robots, PID line followers, smart lighting automation, and RF telemetry systems.</p>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-marker">
+                <div class="marker-dot"></div>
+                <div class="marker-year">2026</div>
+              </div>
+              <div class="timeline-body">
+                <h4>AI + Physical Computing (Advanced Rover)</h4>
+                <p>Integrating microcontrollers with edge vision models, real-time spatial computing, and multi-sensor autonomous systems.</p>
+              </div>
+            </div>
+
+            <div class="timeline-item future-item">
+              <div class="timeline-marker">
+                <div class="marker-dot hollow-dot"></div>
+                <div class="marker-year">Next</div>
+              </div>
+              <div class="timeline-body">
+                <h4>Integrated Intelligent Hardware Systems</h4>
+                <p>End-to-end custom PCB design, RTOS micro-kernels, and embodied AI agents interacting seamlessly with the real world.</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Editorial Feature Card (Right Side) -->
+        <div class="journey-editorial-card glass-panel">
+          <div class="editorial-art-background"></div>
+          <div class="editorial-content">
+            <span class="editorial-tag">THE PHILOSOPHY</span>
+            <h3 class="editorial-heading">
+              SAME CURIOSITY.<br>
+              <span class="gradient-text-alt">BIGGER IDEAS.</span>
+            </h3>
+            <p class="editorial-text">
+              "These aren't just isolated Arduino sketches. This is the living record of me learning how software commands physical atoms."
+            </p>
+
+            <!-- Evolution chain pill -->
+            <div class="evolution-chain-box">
+              <span class="chain-title">FROM LED → AI ROBOT</span>
+              <div class="chain-flow">
+                <span class="chain-node">LED</span>
+                <i class="fa-solid fa-arrow-right"></i>
+                <span class="chain-node">Sensor</span>
+                <i class="fa-solid fa-arrow-right"></i>
+                <span class="chain-node">MCU</span>
+                <i class="fa-solid fa-arrow-right"></i>
+                <span class="chain-node">Motors</span>
+                <i class="fa-solid fa-arrow-right"></i>
+                <span class="chain-node highlight">Robotics & AI</span>
+              </div>
+            </div>
+
+            <a href="https://github.com/PrerithM/Arduino-Projects/blob/main/COOKBOOK.md" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+              <span>Read Cookbook Spec</span>
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 6. LAB JOURNAL (ENGINEERING NOTES & BUG POST-MORTEMS) -->
+    <section id="journal" class="journal-section">
+      <div class="section-header">
+        <div class="header-left">
+          <span class="section-label">LOGBOOK</span>
+          <h2 class="section-title">LAB JOURNAL</h2>
+          <p class="section-desc">Authentic post-mortems and debugging notes. The interesting part was understanding why things broke.</p>
+        </div>
+      </div>
+
+      <div class="journal-grid">
+        
+        <!-- Note 017 -->
+        <article class="journal-entry glass-panel">
+          <div class="journal-meta">
+            <span class="journal-id">LAB NOTE #017</span>
+            <span class="journal-date">HC-SR04 SONAR</span>
+          </div>
+          <h3 class="journal-title">Why did my ultrasonic sensor return random 0 cm spikes?</h3>
+          
+          <div class="journal-step">
+            <span class="step-lbl">Problem:</span>
+            <p>Sensor intermittently measured 0 cm or 3000 cm when objects were stationed at a constant 20 cm distance.</p>
+          </div>
+          <div class="journal-step">
+            <span class="step-lbl">Hypothesis:</span>
+            <p>Echo pin `pulseIn()` timed out or trigger pulse fired before acoustic transducer ring-down settled.</p>
+          </div>
+          <div class="journal-step">
+            <span class="step-lbl">Experiment:</span>
+            <p>Added a 2µs LOW settling period before 10µs trigger pulse, set timeout to 30ms (5m max limit), and added 5-sample median filtering.</p>
+          </div>
+          <div class="journal-step highlight-step">
+            <span class="step-lbl">Lesson Learned:</span>
+            <p><strong>Hardware bugs aren't always hardware bugs.</strong> Physics requires transducer dampening time between acoustic bursts.</p>
+          </div>
+        </article>
+
+        <!-- Note 012 -->
+        <article class="journal-entry glass-panel">
+          <div class="journal-meta">
+            <span class="journal-id">LAB NOTE #012</span>
+            <span class="journal-date">TIMING & ASYNC</span>
+          </div>
+          <h3 class="journal-title">Why <code>delay()</code> ruins responsive motor control</h3>
+          
+          <div class="journal-step">
+            <span class="step-lbl">Problem:</span>
+            <p>Robot missed bumper collision switches while executing LED blinking routines.</p>
+          </div>
+          <div class="journal-step">
+            <span class="step-lbl">Hypothesis:</span>
+            <p>`delay()` halts the ATmega328P instruction pipeline completely, ignoring polled digital inputs during sleep.</p>
+          </div>
+          <div class="journal-step">
+            <span class="step-lbl">Experiment:</span>
+            <p>Refactored loop into non-blocking state machine utilizing `millis()` timestamp differentials.</p>
+          </div>
+          <div class="journal-step highlight-step">
+            <span class="step-lbl">Lesson Learned:</span>
+            <p><strong>Never freeze the microcontroller.</strong> Treat time as a state variable, not an execution pause.</p>
+          </div>
+        </article>
+
+        <!-- Note 008 -->
+        <article class="journal-entry glass-panel">
+          <div class="journal-meta">
+            <span class="journal-id">LAB NOTE #008</span>
+            <span class="journal-date">POWER & INDUCTANCE</span>
+          </div>
+          <h3 class="journal-title">Why DC motors rebooted the Arduino on start-up</h3>
+          
+          <div class="journal-step">
+            <span class="step-lbl">Problem:</span>
+            <p>Engaging full motor speed caused the Arduino Uno power LED to flash and MCU reset immediately.</p>
+          </div>
+          <div class="journal-step">
+            <span class="step-lbl">Hypothesis:</span>
+            <p>Inductive inrush current dropped 5V rail below brownout detection voltage (BOD threshold 4.3V) + back-EMF spike.</p>
+          </div>
+          <div class="journal-step">
+            <span class="step-lbl">Experiment:</span>
+            <p>Isolated logic and motor power rails, added 100µF electrolytic decoupling capacitors and flyback diodes across motor terminals.</p>
+          </div>
+          <div class="journal-step highlight-step">
+            <span class="step-lbl">Lesson Learned:</span>
+            <p><strong>Always isolate noisy inductive loads from sensitive computational logic.</strong> Common ground, separate rails.</p>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- 7. INTERACTIVE CIRCUIT SANDBOX & PLAYGROUND -->
+    <section id="sandbox" class="sandbox-section">
+      <div class="section-header">
+        <div class="header-left">
+          <span class="section-label">SIMULATION LAB</span>
+          <h2 class="section-title">VIRTUAL HARDWARE PLAYGROUND</h2>
+          <p class="section-desc">Interact with virtual sensors in real-time. Move the dials to observe microcontroller calculations.</p>
+        </div>
+      </div>
+
+      <div class="glass-panel sandbox-panel">
+        <div class="sandbox-grid">
+          
+          <!-- Controller Input Panel -->
+          <div class="sandbox-control-pane">
+            <div class="pane-title">
+              <i class="fa-solid fa-sliders"></i>
+              <span>VIRTUAL INPUTS</span>
+            </div>
+
+            <!-- Sonar Distance Slider -->
+            <div class="control-group">
+              <div class="control-label-row">
+                <span><i class="fa-solid fa-satellite-dish"></i> HC-SR04 Target Distance:</span>
+                <span class="control-live-val" id="sb-dist-val">25.0 cm</span>
+              </div>
+              <input type="range" id="sb-dist-slider" min="2" max="200" value="25" class="custom-range">
+              <div class="slider-marks">
+                <span>2cm (Close)</span>
+                <span>100cm</span>
+                <span>200cm (Far)</span>
+              </div>
+            </div>
+
+            <!-- Potentiometer Analog Slider -->
+            <div class="control-group">
+              <div class="control-label-row">
+                <span><i class="fa-solid fa-gauge-high"></i> Potentiometer (A0):</span>
+                <span class="control-live-val" id="sb-pot-val">512 (2.50V)</span>
+              </div>
+              <input type="range" id="sb-pot-slider" min="0" max="1023" value="512" class="custom-range">
+              <div class="slider-marks">
+                <span>0V (GND)</span>
+                <span>2.5V</span>
+                <span>5.0V (VCC)</span>
+              </div>
+            </div>
+
+            <!-- Light LDR toggle -->
+            <div class="control-group">
+              <div class="control-label-row">
+                <span><i class="fa-solid fa-sun"></i> Ambient Light (LDR):</span>
+                <span class="control-live-val" id="sb-light-val">Bright (780 lux)</span>
+              </div>
+              <input type="range" id="sb-light-slider" min="50" max="950" value="780" class="custom-range">
+            </div>
+
+            <!-- Sound feedback toggle -->
+            <div class="audio-toggle-row">
+              <label class="toggle-switch">
+                <input type="checkbox" id="sb-sound-enable">
+                <span class="toggle-slider"></span>
+              </label>
+              <span class="toggle-label"><i class="fa-solid fa-volume-high"></i> Enable Synthesized Sound (Web Audio)</span>
+            </div>
+          </div>
+
+          <!-- Microcontroller Output Telemetry & Visuals -->
+          <div class="sandbox-output-pane">
+            <div class="pane-title">
+              <i class="fa-solid fa-microchip"></i>
+              <span>ARDUINO RESPONSE & ACTUATION</span>
+            </div>
+
+            <!-- Live Virtual LCD Display -->
+            <div class="virtual-lcd">
+              <div class="lcd-screen">
+                <div class="lcd-row" id="lcd-line-1">DIST: 025.0 cm</div>
+                <div class="lcd-row" id="lcd-line-2">PWM: 128 (50.2%)</div>
+              </div>
+              <span class="lcd-bezel-text">HD44780 16x2 I2C DISPLAY</span>
+            </div>
+
+            <!-- Actuator Gauges Grid -->
+            <div class="actuator-status-grid">
+              
+              <!-- Servo Dial -->
+              <div class="actuator-card">
+                <span class="act-name">SG90 Servo</span>
+                <div class="servo-dial-viz">
+                  <div class="servo-arm" id="sb-servo-arm"></div>
+                </div>
+                <span class="act-val" id="sb-servo-angle">90°</span>
               </div>
 
-              <a href="https://github.com/PrerithM/Arduino-Projects" target="_blank" rel="noopener noreferrer"
-                class="btn btn-primary btn-block">
-                <i data-lucide="star"></i>
-                <span>Star on GitHub</span>
-              </a>
+              <!-- Warning LED Bar -->
+              <div class="actuator-card">
+                <span class="act-name">Proximity Alarm</span>
+                <div class="proximity-led-bar">
+                  <span class="bar-led led-g active" id="led-safe" title="Safe"></span>
+                  <span class="bar-led led-y" id="led-warn" title="Caution"></span>
+                  <span class="bar-led led-r" id="led-danger" title="Stop"></span>
+                </div>
+                <span class="act-val" id="sb-proximity-state">SAFE</span>
+              </div>
+
+              <!-- PWM DC Motor Speed -->
+              <div class="actuator-card">
+                <span class="act-name">Motor RPM</span>
+                <div class="rpm-spinner">
+                  <i class="fa-solid fa-fan" id="sb-fan-icon"></i>
+                </div>
+                <span class="act-val" id="sb-rpm-val">1250 RPM</span>
+              </div>
+
             </div>
+
+            <!-- Serial Monitor Stream -->
+            <div class="mini-serial-monitor">
+              <div class="serial-header">
+                <span>SERIAL MONITOR @ 9600 BAUD</span>
+                <span class="serial-status">CONNECTED</span>
+              </div>
+              <div class="serial-terminal" id="sb-serial-log">
+                [00:00.00] Sensor Bus Initialized.<br>
+                [00:00.10] Sonar: 25.0 cm | Pot: 512 | Echo Time: 1457 µs
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. FOOTER CALLOUT -->
+    <section class="footer-callout-section">
+      <div class="earth-horizon-glow"></div>
+      <div class="callout-container">
+        <div class="callout-left">
+          <h2 class="callout-title">THE LAB IS STILL RUNNING.</h2>
+          <p class="callout-sub">More experiments. More failures. More systems to build.</p>
+        </div>
+
+        <div class="callout-right">
+          <a href="https://github.com/PrerithM/Arduino-Projects" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg">
+            <span>Follow the Build</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+          
+          <div class="social-links-row">
+            <a href="https://github.com/PrerithM" target="_blank" rel="noopener noreferrer" class="social-icon-btn" title="GitHub"><i class="fa-brands fa-github"></i></a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="social-icon-btn" title="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
+            <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" class="social-icon-btn" title="YouTube"><i class="fa-brands fa-youtube"></i></a>
           </div>
         </div>
       </div>
@@ -472,164 +829,52 @@
 
   </main>
 
-  <!-- Footer -->
-  <footer class="footer">
+  <!-- FOOTER -->
+  <footer class="footer-bottom">
     <div class="container footer-content">
-      <div class="footer-left">
-        <div class="brand-text footer-brand">
-          <span class="brand-title">Arduino Projects</span>
-          <span class="brand-subtitle">Cookbook</span>
+      <div class="footer-brand">
+        <svg class="pulse-icon small" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 16H8L11 6L16 26L21 11L24 16H30" stroke="#35C98A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="footer-meta-text">
+          <span class="footer-logo-title">PRERITH.M</span>
+          <span class="footer-tagline">Hardware • Software • Real World Impact</span>
         </div>
-        <p class="footer-tagline">Empowering makers worldwide with modular hardware building blocks.</p>
       </div>
 
-      <div class="footer-links">
-        <a href="https://github.com/PrerithM/Arduino-Projects" target="_blank" rel="noopener noreferrer">GitHub
-          Repository</a>
-        <a href="https://github.com/PrerithM/Arduino-Projects/blob/main/COOKBOOK.md" target="_blank"
-          rel="noopener noreferrer">Cookbook Map</a>
-        <a href="https://github.com/PrerithM/Arduino-Projects/blob/main/CONTRIBUTING.md" target="_blank"
-          rel="noopener noreferrer">Contributing</a>
-        <a href="https://www.arduino.cc/en/software" target="_blank" rel="noopener noreferrer">Download Arduino IDE</a>
-      </div>
-
-      <div class="footer-bottom">
-        <p>© 2026 Arduino Projects Portfolio. Released under the MIT License.</p>
-        <button class="back-to-top-btn" id="backToTopBtn" aria-label="Back to top">
-          <i data-lucide="arrow-up"></i>
-          <span>Back to Top</span>
-        </button>
+      <div class="footer-copyright">
+        <p>© 2026 Prerith M. All rights reserved.</p>
+        <p class="footer-subtext">Built with passion & a soldering iron.</p>
       </div>
     </div>
   </footer>
 
-  <!-- Project Detail Modal -->
-  <div class="modal-backdrop" id="projectModal" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <div class="modal-category-badge" id="modalCategoryBadge">Category</div>
-          <h2 class="modal-title" id="modalTitle">Project Title</h2>
-        </div>
-        <button class="modal-close-btn" id="modalCloseBtn" aria-label="Close dialog">
-          <i data-lucide="x"></i>
-        </button>
+  <!-- EXPERIMENT DETAIL MODAL -->
+  <div id="experiment-modal" class="modal-overlay" aria-hidden="true" role="dialog">
+    <div class="modal-card glass-panel" id="modal-content-container">
+      <!-- Injected dynamically via JS -->
+    </div>
+  </div>
+
+  <!-- SEARCH OVERLAY MODAL -->
+  <div id="search-modal" class="search-overlay" aria-hidden="true">
+    <div class="search-modal-box glass-panel">
+      <div class="search-modal-header">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="omni-search-input" placeholder="Type a component, pin, or topic (e.g. Servo, I2C, HC-SR04)...">
+        <button id="close-search-modal" class="close-search-btn"><i class="fa-solid fa-xmark"></i></button>
       </div>
-
-      <div class="modal-tabs">
-        <button class="modal-tab-btn active" data-tab="guide">
-          <i data-lucide="book-open"></i>
-          <span>Guide & Specs</span>
-        </button>
-        <button class="modal-tab-btn" data-tab="wiring">
-          <i data-lucide="cpu"></i>
-          <span>Wiring & Circuit</span>
-        </button>
-        <button class="modal-tab-btn" data-tab="code">
-          <i data-lucide="code-2"></i>
-          <span>Arduino Sketch (.ino)</span>
-        </button>
-        <button class="modal-tab-btn" data-tab="combinations">
-          <i data-lucide="git-merge"></i>
-          <span>Cookbook Mixes</span>
-        </button>
+      <div class="search-results-list" id="omni-search-results">
+        <!-- Search hits -->
       </div>
-
-      <div class="modal-body">
-        <!-- Tab 1: Guide & Specs -->
-        <div class="modal-tab-content active" id="tabGuide">
-          <div class="modal-hook-box" id="modalHook">Hook description...</div>
-
-          <h4 class="modal-section-title"><i data-lucide="check-circle-2"></i> What You'll Learn</h4>
-          <ul class="modal-learn-list" id="modalLearnList"></ul>
-
-          <h4 class="modal-section-title"><i data-lucide="layers"></i> Components Required</h4>
-          <div class="table-responsive">
-            <table class="modal-table" id="modalComponentsTable">
-              <thead>
-                <tr>
-                  <th>Component</th>
-                  <th>Quantity</th>
-                  <th>Notes</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-
-          <h4 class="modal-section-title"><i data-lucide="settings"></i> How It Works (Under the Hood)</h4>
-          <div class="modal-explanation-box" id="modalExplanation"></div>
-
-          <h4 class="modal-section-title"><i data-lucide="zap"></i> Try It Yourself (Challenges)</h4>
-          <ul class="modal-challenges-list" id="modalChallengesList"></ul>
-        </div>
-
-        <!-- Tab 2: Wiring & Circuit -->
-        <div class="modal-tab-content" id="tabWiring">
-          <h4 class="modal-section-title"><i data-lucide="plug"></i> Pin Connection Table</h4>
-          <div class="table-responsive">
-            <table class="modal-table" id="modalPinsTable">
-              <thead>
-                <tr>
-                  <th>Arduino Pin</th>
-                  <th>Component Pin</th>
-                  <th>Function & Description</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-
-          <h4 class="modal-section-title"><i data-lucide="network"></i> ASCII Circuit Wiring Diagram</h4>
-          <pre class="ascii-diagram-box"><code id="modalAsciiDiagram"></code></pre>
-        </div>
-
-        <!-- Tab 3: Arduino Sketch (.ino) -->
-        <div class="modal-tab-content" id="tabCode">
-          <div class="code-toolbar">
-            <span class="code-filename" id="modalSketchFilename">sketch.ino</span>
-            <div class="code-actions">
-              <button class="btn btn-sm btn-secondary" id="modalCopyCodeBtn">
-                <i data-lucide="copy"></i>
-                <span>Copy Code</span>
-              </button>
-              <button class="btn btn-sm btn-primary" id="modalDownloadCodeBtn">
-                <i data-lucide="download"></i>
-                <span>Download .ino</span>
-              </button>
-            </div>
-          </div>
-          <pre class="code-box"><code class="language-cpp" id="modalCodeSnippet"></code></pre>
-        </div>
-
-        <!-- Tab 4: Cookbook Mixes -->
-        <div class="modal-tab-content" id="tabCombinations">
-          <h4 class="modal-section-title"><i data-lucide="sparkles"></i> Compatible Recipes & Mixes</h4>
-          <p class="modal-subtext">Combine this module with other building blocks in the repository to create
-            multi-functional systems:</p>
-          <div class="combinations-grid" id="modalCombinationsList"></div>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <a href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" id="modalGithubLink">
-          <i data-lucide="external-link"></i>
-          <span>View Folder on GitHub</span>
-        </a>
-        <button class="btn btn-primary" id="modalDoneBtn">Done</button>
+      <div class="search-modal-footer">
+        <span>Navigation: <kbd>↑</kbd> <kbd>↓</kbd> to select</span>
+        <span><kbd>ESC</kbd> to exit</span>
       </div>
     </div>
   </div>
 
-  <!-- Toast Notification -->
-  <div class="toast" id="toastNotification">
-    <i data-lucide="check" class="toast-icon"></i>
-    <span id="toastMessage">Copied to clipboard!</span>
-  </div>
-
-  <!-- External Dataset & Application Logic -->
-  <script src="data.js"></script>
+  <!-- Scripts -->
   <script src="app.js"></script>
 </body>
-
 </html>
