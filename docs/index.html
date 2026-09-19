@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Arduino Projects Cookbook — Modular Hardware Recipes & Building Blocks</title>
-  <meta name="description" content="A modular, mix-and-match collection of 31+ documented Arduino projects, wiring diagrams, sketches, and recipes for makers, students, and engineers.">
-  
+  <meta name="description"
+    content="A modular, mix-and-match collection of 31+ documented Arduino projects, wiring diagrams, sketches, and recipes for makers, students, and engineers.">
+
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
-  
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&family=Outfit:wght@400;600;700;800&display=swap"
+    rel="stylesheet">
+
   <!-- Highlight.js for Arduino Code Highlighting -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" id="hljs-theme">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"
+    id="hljs-theme">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
 
@@ -22,6 +27,7 @@
   <!-- Custom Stylesheet -->
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
   <!-- Navigation Bar -->
@@ -30,14 +36,14 @@
       <a href="#" class="nav-brand" aria-label="Arduino Cookbook Home">
         <div class="brand-logo-icon">
           <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="arduino-infinity-svg">
-            <circle cx="16" cy="24" r="10" stroke="currentColor" stroke-width="4.5"/>
-            <circle cx="32" cy="24" r="10" stroke="currentColor" stroke-width="4.5"/>
-            <path d="M12 24H20M28 24H36M32 20V28" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="16" cy="24" r="10" stroke="currentColor" stroke-width="4.5" />
+            <circle cx="32" cy="24" r="10" stroke="currentColor" stroke-width="4.5" />
+            <path d="M12 24H20M28 24H36M32 20V28" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
           </svg>
         </div>
         <div class="brand-text">
           <span class="brand-title">Arduino</span>
-          <span class="brand-subtitle">Cookbook</span>
+          <span class="brand-subtitle">Projects</span>
         </div>
       </a>
 
@@ -57,13 +63,15 @@
         </button>
 
         <!-- Theme Toggle Button -->
-        <button class="icon-btn theme-toggle-btn" id="themeToggleBtn" title="Toggle Dark/Light Mode" aria-label="Toggle Theme">
+        <button class="icon-btn theme-toggle-btn" id="themeToggleBtn" title="Toggle Dark/Light Mode"
+          aria-label="Toggle Theme">
           <i data-lucide="sun" class="sun-icon"></i>
           <i data-lucide="moon" class="moon-icon"></i>
         </button>
 
         <!-- GitHub Repository Button -->
-        <a href="https://github.com/PrerithM/Arduino-Projects" target="_blank" rel="noopener noreferrer" class="btn btn-secondary nav-github-btn">
+        <a href="https://github.com/PrerithM/Arduino-Projects" target="_blank" rel="noopener noreferrer"
+          class="btn btn-secondary nav-github-btn">
           <i data-lucide="github"></i>
           <span>GitHub</span>
         </a>
@@ -83,7 +91,7 @@
     <section class="hero-section" id="hero">
       <div class="hero-bg-glow"></div>
       <div class="hero-circuit-overlay"></div>
-      
+
       <div class="container hero-grid">
         <div class="hero-content">
           <div class="hero-badge">
@@ -97,7 +105,9 @@
           </h1>
 
           <p class="hero-description">
-            A comprehensive, cookbook-style portfolio of Arduino building blocks. Pick any sensor, combine it with an actuator, wire it with step-by-step ASCII guides, and paste production-ready sketches to make your dream project.
+            A comprehensive, cookbook-style portfolio of Arduino building blocks. Pick any sensor, combine it with an
+            actuator, wire it with step-by-step ASCII guides, and paste production-ready sketches to make your dream
+            project.
           </p>
 
           <div class="hero-cta-group">
@@ -122,7 +132,7 @@
               <span class="stat-value">6</span>
               <span class="stat-label">Core Categories</span>
             </div>
-            <div class="stat-divider"></div>
+            <div class="stat-divider"></div>ßß
             <div class="stat-item">
               <span class="stat-value">100%</span>
               <span class="stat-label">Tested Code & Wiring</span>
@@ -133,7 +143,7 @@
         <div class="hero-visual">
           <div class="hero-image-wrapper">
             <img src="assets/images/hero.jpg" alt="Arduino Prototyping Workbench" class="hero-main-img" loading="eager">
-            
+
             <!-- Floating Feature Pills -->
             <div class="floating-tag tag-top-right">
               <i data-lucide="cpu"></i>
@@ -155,7 +165,8 @@
           <div class="section-badge">Structured Learning Path</div>
           <h2 class="section-title">Six Pillars of Physical Computing</h2>
           <p class="section-subtitle">
-            Progress from elementary digital logic to intelligent autonomous robotics. Click any category to filter the recipe catalog.
+            Progress from elementary digital logic to intelligent autonomous robotics. Click any category to filter the
+            recipe catalog.
           </p>
         </div>
 
@@ -173,7 +184,8 @@
             <div class="section-badge"><i data-lucide="sparkles" class="badge-icon"></i> Interactive Generator</div>
             <h2 class="section-title">The Project Recipe Mixer</h2>
             <p class="section-subtitle">
-              Select your available components below to synthesize instant project recipes, wiring instructions, and estimated difficulty.
+              Select your available components below to synthesize instant project recipes, wiring instructions, and
+              estimated difficulty.
             </p>
           </div>
 
@@ -246,7 +258,8 @@
             <div class="result-specs-grid">
               <div class="spec-card">
                 <span class="spec-title">⚡ How They Work Together</span>
-                <span class="spec-text" id="resultLogic">Sensor feeds continuous data to Arduino which executes threshold logic.</span>
+                <span class="spec-text" id="resultLogic">Sensor feeds continuous data to Arduino which executes
+                  threshold logic.</span>
               </div>
               <div class="spec-card">
                 <span class="spec-title">🔌 Pins & Wiring Preview</span>
@@ -276,7 +289,8 @@
           <div class="section-badge">Cookbook Recipe Index</div>
           <h2 class="section-title">Explore All 31 Projects</h2>
           <p class="section-subtitle">
-            Search by keyword, filter by category, or open any card to view detailed circuit schematics, pin tables, and commented code.
+            Search by keyword, filter by category, or open any card to view detailed circuit schematics, pin tables, and
+            commented code.
           </p>
         </div>
 
@@ -284,7 +298,9 @@
         <div class="explorer-controls">
           <div class="search-box">
             <i data-lucide="search" class="search-icon"></i>
-            <input type="text" id="projectSearchInput" class="search-input" placeholder="Search by name, sensor, pin, or concept (e.g., 'servo', 'I2C', 'temp')..." autocomplete="off">
+            <input type="text" id="projectSearchInput" class="search-input"
+              placeholder="Search by name, sensor, pin, or concept (e.g., 'servo', 'I2C', 'temp')..."
+              autocomplete="off">
             <button class="clear-search-btn" id="clearSearchBtn" aria-label="Clear Search">
               <i data-lucide="x"></i>
             </button>
@@ -407,10 +423,13 @@
               <div class="section-badge">Maker Journey</div>
               <h2 class="section-title">Behind the Cookbook</h2>
               <p class="about-paragraph">
-                This repository is a curated compilation of real-world hardware projects, prototypes, and laboratory experiments built, wired, and verified with love for open-source physical computing.
+                This repository is a curated compilation of real-world hardware projects, prototypes, and laboratory
+                experiments built, wired, and verified with love for open-source physical computing.
               </p>
               <p class="about-paragraph">
-                Every sketch is written with clean indentation, non-blocking timers, and zero-compromise documentation so anyone from an elementary student to an embedded systems engineer can pick up these modules and invent something remarkable.
+                Every sketch is written with clean indentation, non-blocking timers, and zero-compromise documentation
+                so anyone from an elementary student to an embedded systems engineer can pick up these modules and
+                invent something remarkable.
               </p>
 
               <div class="about-badges-row">
@@ -432,7 +451,7 @@
             <div class="about-cta-box">
               <h3>Ready to start building?</h3>
               <p>Clone the repository, open your Arduino IDE, and wire your first project in minutes.</p>
-              
+
               <div class="git-clone-box">
                 <code>git clone https://github.com/PrerithM/Arduino-Projects.git</code>
                 <button class="copy-clone-btn" id="copyCloneBtn" title="Copy git clone command">
@@ -440,7 +459,8 @@
                 </button>
               </div>
 
-              <a href="https://github.com/PrerithM/Arduino-Projects" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-block">
+              <a href="https://github.com/PrerithM/Arduino-Projects" target="_blank" rel="noopener noreferrer"
+                class="btn btn-primary btn-block">
                 <i data-lucide="star"></i>
                 <span>Star on GitHub</span>
               </a>
@@ -464,9 +484,12 @@
       </div>
 
       <div class="footer-links">
-        <a href="https://github.com/PrerithM/Arduino-Projects" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
-        <a href="https://github.com/PrerithM/Arduino-Projects/blob/main/COOKBOOK.md" target="_blank" rel="noopener noreferrer">Cookbook Map</a>
-        <a href="https://github.com/PrerithM/Arduino-Projects/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer">Contributing</a>
+        <a href="https://github.com/PrerithM/Arduino-Projects" target="_blank" rel="noopener noreferrer">GitHub
+          Repository</a>
+        <a href="https://github.com/PrerithM/Arduino-Projects/blob/main/COOKBOOK.md" target="_blank"
+          rel="noopener noreferrer">Cookbook Map</a>
+        <a href="https://github.com/PrerithM/Arduino-Projects/blob/main/CONTRIBUTING.md" target="_blank"
+          rel="noopener noreferrer">Contributing</a>
         <a href="https://www.arduino.cc/en/software" target="_blank" rel="noopener noreferrer">Download Arduino IDE</a>
       </div>
 
@@ -582,7 +605,8 @@
         <!-- Tab 4: Cookbook Mixes -->
         <div class="modal-tab-content" id="tabCombinations">
           <h4 class="modal-section-title"><i data-lucide="sparkles"></i> Compatible Recipes & Mixes</h4>
-          <p class="modal-subtext">Combine this module with other building blocks in the repository to create multi-functional systems:</p>
+          <p class="modal-subtext">Combine this module with other building blocks in the repository to create
+            multi-functional systems:</p>
           <div class="combinations-grid" id="modalCombinationsList"></div>
         </div>
       </div>
@@ -607,4 +631,5 @@
   <script src="data.js"></script>
   <script src="app.js"></script>
 </body>
+
 </html>
