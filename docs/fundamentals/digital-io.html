@@ -1,742 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Digital Input / Output & Debounce — Arduino Hardware Lab</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Input & Debouncing — Hardware Lab | Arduino Learning Lab</title>
   <meta name="description"
-    content="Master digital binary logic, internal pull-up resistors, and mechanical switch debouncing algorithms on Arduino.">
-  <!-- Fonts & Icons matching main website -->
-  <link rel=preconnect href="https://fonts.googleapis.com">
-  <link rel=preconnect href="https://fonts.gstatic.com" crossorigin>
+    content="Learn how Arduino reads digital button inputs as HIGH or LOW, master internal pull-up resistors, filter mechanical contact bounce, and build reliable physical circuits.">
+
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@500;600;700&family=Outfit:wght@600;700;800&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    :root {
-      --bg: #07090d;
-      --panel: #0d1118;
-      --panel2: #111722;
-      --line: #202938;
-      --text: #eef2f7;
-      --muted: #8c98a9;
-      --accent: #ff5a36;
-      --cyan: #39d7ff;
-      --green: #52e39b;
-      --yellow: #ffd166;
-      --purple: #c792ea;
-      --blue: #82aaff;
-      --red: #ff6b6b;
-      --shadow: 0 18px 60px #0007
-    }
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-    * {
-      box-sizing: border-box
-    }
-
-    html {
-      scroll-behavior: smooth
-    }
-
-    body {
-      margin: 0;
-      background: radial-gradient(circle at 70% 0%, #14202d 0, #07090d 34%), var(--bg);
-      color: var(--text);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-      line-height: 1.55
-    }
-
-    body:before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      opacity: .11;
-      background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px);
-      background-size: 42px 42px;
-      mask-image: linear-gradient(to bottom, black, transparent 75%)
-    }
-
-    .container {
-      width: min(1180px, calc(100% - 40px));
-      margin: auto
-    }
-
-    /* Floating Navbar matching Main Website */
-    .navbar-wrapper {
-      position: fixed;
-      top: 16px;
-      left: 0;
-      right: 0;
-      display: flex;
-      justify-content: center;
-      z-index: 100;
-      padding: 0 20px;
-    }
-
-    .navbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      max-width: 1100px;
-      height: 64px;
-      padding: 0 18px;
-      border-radius: 9999px;
-      background: rgba(13, 15, 18, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-    }
-
-    .brand-logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      text-decoration: none;
-    }
-
-    .pulse-icon {
-      width: 26px;
-      height: 26px;
-      filter: drop-shadow(0 0 8px #35C98A);
-    }
-
-    .brand-text {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .brand-name {
-      font-weight: 700;
-      font-size: 0.95rem;
-      letter-spacing: 0.08em;
-      font-family: 'Outfit', sans-serif;
-      color: #eef2f7;
-    }
-
-    .brand-badge {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.65rem;
-      padding: 2px 6px;
-      border-radius: 4px;
-      background: rgba(53, 201, 138, 0.12);
-      color: #35C98A;
-      border: 1px solid rgba(53, 201, 138, 0.3);
-      font-weight: 600;
-      letter-spacing: 0.05em;
-    }
-
-    .nav-links {
-      display: flex;
-      list-style: none;
-      gap: 4px;
-      background: rgba(255, 255, 255, 0.03);
-      padding: 4px 6px;
-      border-radius: 9999px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      margin: 0;
-    }
-
-    .nav-link {
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: #8c98a9;
-      padding: 6px 14px;
-      border-radius: 9999px;
-      text-decoration: none;
-      transition: all 0.15s ease;
-    }
-
-    .nav-link:hover {
-      color: #eef2f7;
-      background: rgba(255, 255, 255, 0.08);
-    }
-
-    .nav-link.active {
-      color: #eef2f7;
-      background: rgba(255, 255, 255, 0.12);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    }
-
-    .nav-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .nav-back-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      color: var(--cyan);
-      background: rgba(57, 215, 255, 0.08);
-      border: 1px solid rgba(57, 215, 255, 0.25);
-      padding: 6px 14px;
-      border-radius: 9999px;
-      font-size: 0.82rem;
-      text-decoration: none;
-      font-weight: 600;
-      transition: all 0.15s ease;
-    }
-
-    .nav-back-btn:hover {
-      background: rgba(57, 215, 255, 0.16);
-      border-color: rgba(57, 215, 255, 0.45);
-      transform: translateY(-1px);
-    }
-
-    .btn-github-nav {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: #eef2f7;
-      padding: 6px 15px;
-      border-radius: 9999px;
-      font-size: 0.82rem;
-      font-weight: 500;
-      text-decoration: none;
-      transition: all 0.15s ease;
-    }
-
-    .btn-github-nav:hover {
-      background: rgba(255, 255, 255, 0.15);
-      border-color: rgba(255, 255, 255, 0.3);
-      transform: translateY(-1px);
-    }
-
-    @media (max-width: 860px) {
-      .nav-links {
-        display: none;
-      }
-    }
-
-    .hero {
-      padding: 104px 0 62px;
-      display: grid;
-      grid-template-columns: 1.05fr .95fr;
-      gap: 54px;
-      align-items: center
-    }
-
-    .eyebrow {
-      color: var(--accent);
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: .14em;
-      text-transform: uppercase
-    }
-
-    .hero h1 {
-      font-size: clamp(43px, 6vw, 75px);
-      line-height: .97;
-      letter-spacing: -.055em;
-      margin: 14px 0 20px
-    }
-
-    .hero p {
-      font-size: 18px;
-      color: var(--muted);
-      max-width: 650px
-    }
-
-    .buttons {
-      display: flex;
-      gap: 12px;
-      margin-top: 28px;
-      flex-wrap: wrap
-    }
-
-    .btn {
-      border: 1px solid var(--line);
-      background: #111722;
-      color: #fff;
-      padding: 12px 17px;
-      border-radius: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px
-    }
-
-    .btn.primary {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #090a0c
-    }
-
-    .btn:hover {
-      transform: translateY(-1px)
-    }
-
-    .hero-card,
-    .card {
-      background: rgba(13, 17, 24, .9);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 22px;
-      box-shadow: var(--shadow)
-    }
-
-    .arduino {
-      border: 1px solid #384352;
-      border-radius: 16px;
-      padding: 20px;
-      position: relative;
-      overflow: hidden
-    }
-
-    .boardtop {
-      display: flex;
-      justify-content: space-between;
-      color: #9ca7b6;
-      font: 12px monospace
-    }
-
-    .board {
-      margin: 18px auto;
-      width: 88%;
-      height: 160px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #167c62, #0c5648);
-      border: 2px solid #2ba980;
-      position: relative
-    }
-
-    .chip {
-      position: absolute;
-      width: 100px;
-      height: 45px;
-      left: 50%;
-      top: 55px;
-      transform: translateX(-50%);
-      background: #15191f;
-      border: 1px solid #4b5664;
-      border-radius: 5px;
-      display: grid;
-      place-items: center;
-      font: 11px monospace;
-      color: #cdd5df
-    }
-
-    .pin {
-      position: absolute;
-      font: 10px monospace
-    }
-
-    .p5 {
-      left: 8px;
-      top: 10px
-    }
-
-    .d2 {
-      right: 8px;
-      top: 10px
-    }
-
-    .d13 {
-      left: 8px;
-      bottom: 10px
-    }
-
-    .led-indicator {
-      position: absolute;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: #203028;
-      border: 2px solid #3a5040;
-      top: 20px;
-      left: 50px;
-      transition: .15s;
-      box-shadow: none
-    }
-
-    .led-indicator.on {
-      background: #52e39b;
-      border-color: #a8ffd2;
-      box-shadow: 0 0 16px #52e39b
-    }
-
-    .btn-interactive {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, #2e3848, #141a24);
-      border: 4px solid #455268;
-      box-shadow: 0 8px 0 #0c1017, 0 15px 30px #0009;
-      cursor: pointer;
-      margin: 18px auto;
-      display: grid;
-      place-items: center;
-      user-select: none;
-      transition: transform .08s, box-shadow .08s
-    }
-
-    .btn-interactive:active {
-      transform: translateY(6px);
-      box-shadow: 0 2px 0 #0c1017, 0 6px 15px #000a
-    }
-
-    .btn-cap {
-      width: 68px;
-      height: 68px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #ff5a36, #d83d1a);
-      display: grid;
-      place-items: center;
-      font-weight: 900;
-      color: #fff;
-      font-size: 12px;
-      letter-spacing: .05em;
-      border: 2px solid #ff886e
-    }
-
-    section {
-      padding: 66px 0
-    }
-
-    .section-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 20px;
-      align-items: end;
-      margin-bottom: 24px
-    }
-
-    h2 {
-      font-size: 34px;
-      letter-spacing: -.035em;
-      margin: 0 0 6px
-    }
-
-    .lead {
-      color: var(--muted);
-      max-width: 700px;
-      margin: 0
-    }
-
-    .grid {
-      display: grid;
-      gap: 16px
-    }
-
-    .three {
-      grid-template-columns: repeat(3, 1fr)
-    }
-
-    .two {
-      grid-template-columns: repeat(2, 1fr)
-    }
-
-    .flow {
-      display: flex;
-      align-items: stretch;
-      gap: 8px;
-      flex-wrap: wrap
-    }
-
-    .node {
-      flex: 1;
-      min-width: 160px;
-      padding: 18px;
-      background: #0b1017;
-      border: 1px solid var(--line);
-      border-radius: 14px
-    }
-
-    .arrow {
-      display: grid;
-      place-items: center;
-      color: var(--cyan);
-      font-size: 22px
-    }
-
-    .node p {
-      color: var(--muted);
-      font-size: 14px
-    }
-
-    .icon {
-      font-size: 28px
-    }
-
-    .simple {
-      font-size: 16px
-    }
-
-    .callout {
-      background: #101722;
-      border: 1px solid #2b394b;
-      border-left: 3px solid var(--cyan);
-      padding: 17px;
-      border-radius: 12px
-    }
-
-    .callout.orange {
-      border-left-color: var(--accent)
-    }
-
-    .callout.green {
-      border-left-color: var(--green)
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse
-    }
-
-    th,
-    td {
-      text-align: left;
-      padding: 13px;
-      border-bottom: 1px solid var(--line)
-    }
-
-    th {
-      font-size: 11px;
-      text-transform: uppercase;
-      color: var(--muted)
-    }
-
-    td code {
-      color: var(--cyan)
-    }
-
-    .sim {
-      display: grid;
-      grid-template-columns: .85fr 1.15fr;
-      gap: 18px
-    }
-
-    .control {
-      background: #090d13;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 22px;
-      text-align: center
-    }
-
-    .readout {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-top: 18px;
-      text-align: left
-    }
-
-    .read {
-      padding: 14px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: #0c1118
-    }
-
-    .read span {
-      font: 11px monospace;
-      color: var(--muted)
-    }
-
-    .read b {
-      font-size: 20px;
-      display: block
-    }
-
-    .chart {
-      height: 260px;
-      background: repeating-linear-gradient(0deg, transparent 0 39px, #18202b 40px), repeating-linear-gradient(90deg, transparent 0 59px, #18202b 60px);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      overflow: hidden
-    }
-
-    .chart canvas {
-      width: 100%;
-      height: 100%
-    }
-
-    .code-layout {
-      display: grid;
-      grid-template-columns: 1.35fr .65fr;
-      gap: 16px
-    }
-
-    .code {
-      background: #080b10;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      overflow: hidden
-    }
-
-    .codebar {
-      padding: 11px 14px;
-      border-bottom: 1px solid var(--line);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      color: var(--muted);
-      font: 12px monospace
-    }
-
-    .copy {
-      border: 1px solid #354052;
-      background: #141b25;
-      color: #dce5ee;
-      padding: 6px 9px;
-      border-radius: 7px;
-      cursor: pointer;
-      font: 12px monospace
-    }
-
-    .copy:hover {
-      border-color: var(--cyan)
-    }
-
-    .code pre {
-      margin: 0;
-      padding: 20px;
-      overflow: auto;
-      font-size: 13px;
-      line-height: 1.7;
-      max-height: 600px
-    }
-
-    .kw {
-      color: var(--purple)
-    }
-
-    .type {
-      color: var(--blue)
-    }
-
-    .fn {
-      color: var(--yellow)
-    }
-
-    .num {
-      color: #f78c6c
-    }
-
-    .str {
-      color: var(--green)
-    }
-
-    .comment {
-      color: #6f849b
-    }
-
-    .var {
-      color: #f8f8f2
-    }
-
-    .serial {
-      background: #05080c;
-      border: 1px solid #1e2835;
-      border-radius: 16px;
-      padding: 18px;
-      font: 12px monospace;
-      min-height: 280px;
-      color: #a9f0ce;
-      overflow: hidden
-    }
-
-    .serial .head {
-      color: #7d8998;
-      margin-bottom: 12px
-    }
-
-    .serialline {
-      display: grid;
-      grid-template-columns: 140px 1fr;
-      gap: 12px
-    }
-
-    .explain-list {
-      display: grid;
-      gap: 11px
-    }
-
-    .explain-row {
-      display: grid;
-      grid-template-columns: 35px 1fr;
-      gap: 11px
-    }
-
-    .explain-row .n {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      background: #182232;
-      color: var(--cyan);
-      display: grid;
-      place-items: center;
-      font-weight: 800
-    }
-
-    .explain-row p {
-      margin: 2px 0 0;
-      color: var(--muted);
-      font-size: 13px
-    }
-
-    .challenge {
-      border-left: 3px solid var(--accent)
-    }
-
-    .tag {
-      display: inline-block;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 5px 9px;
-      color: #b8c3d0;
-      font: 11px monospace
-    }
-
-    .footer {
-      border-top: 1px solid var(--line);
-      padding: 35px 0;
-      color: var(--muted);
-      font-size: 13px
-    }
-
-    @media(max-width:850px) {
-
-      .hero,
-      .sim,
-      .two,
-      .three,
-      .code-layout {
-        grid-template-columns: 1fr
-      }
-
-      .links {
-        display: none
-      }
-
-      .readout {
-        grid-template-columns: 1fr
-      }
-
-      .hero {
-        padding-top: 96px
-      }
-    }
-  </style>
+  <!-- Shared Hardware Lab Stylesheet -->
+  <link rel="stylesheet" href="../style.css">
 </head>
 
 <body>
-  <!-- Floating Island Header matching main website -->
+
+  <!-- Ambient PCB background grid & glow -->
+  <div class="bg-grid-pattern"></div>
+  <div class="ambient-glow glow-top-left"></div>
+  <div class="ambient-glow glow-top-right"></div>
+
+  <!-- 1. FLOATING NAVIGATION BAR -->
   <header class="navbar-wrapper">
-    <nav class="navbar">
+    <nav class="navbar glass-panel">
       <a href="../index.html" class="brand-logo">
         <svg class="pulse-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M2 16H8L11 6L16 26L21 11L24 16H30" stroke="#35C98A" stroke-width="2.5" stroke-linecap="round"
@@ -749,11 +42,10 @@
       </a>
 
       <ul class="nav-links">
-        <li><a href="#idea" class="nav-link">Architecture</a></li>
-        <li><a href="#simulator" class="nav-link active">Simulator</a></li>
-        <li><a href="#circuit" class="nav-link">Circuit</a></li>
-        <li><a href="#code" class="nav-link">Code</a></li>
-        <li><a href="#challenges" class="nav-link">Challenges</a></li>
+        <li><a href="../index.html#projects" class="nav-link">Projects</a></li>
+        <li><a href="../index.html#sandbox" class="nav-link">Playground</a></li>
+        <li><a href="../index.html#journal" class="nav-link">Journal</a></li>
+        <li><a href="../index.html#journey" class="nav-link">Journey</a></li>
       </ul>
 
       <div class="nav-actions">
@@ -764,416 +56,1091 @@
         <a href="https://github.com/PrerithM/Arduino-Projects/tree/main/01-Fundamentals/Digital-IO" target="_blank"
           rel="noopener noreferrer" class="btn-github-nav">
           <i class="fa-brands fa-github"></i>
-          <span>GitHub</span>
-          <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.65rem; opacity: 0.7;"></i>
+          <span>Source</span>
+          <i class="fa-solid fa-arrow-up-right-from-square nav-ext-icon"></i>
         </a>
       </div>
     </nav>
   </header>
 
-  <main>
-    <div class="container">
-      <section class="hero">
+  <main class="container">
+
+    <!-- STICKY PROJECT SUB-NAVIGATION -->
+    <div class="project-subnav-wrapper">
+      <nav class="project-subnav" aria-label="Project sections">
+        <ul class="subnav-track">
+          <li><a href="#overview" class="subnav-link active"><i class="fa-solid fa-compass"></i> Overview</a></li>
+          <li><a href="#simulation" class="subnav-link"><i class="fa-solid fa-bolt"></i> Try It</a></li>
+          <li><a href="#how-it-works" class="subnav-link"><i class="fa-solid fa-lightbulb"></i> How It Works</a></li>
+          <li><a href="#circuit" class="subnav-link"><i class="fa-solid fa-microchip"></i> Circuit</a></li>
+          <li><a href="#code" class="subnav-link"><i class="fa-solid fa-code"></i> Code</a></li>
+          <li><a href="#experiments" class="subnav-link"><i class="fa-solid fa-flask"></i> Experiment</a></li>
+          <li><a href="#deeper" class="subnav-link"><i class="fa-solid fa-wave-square"></i> Go Deeper</a></li>
+          <li><a href="#next" class="subnav-link"><i class="fa-solid fa-arrow-right"></i> Next</a></li>
+        </ul>
+
+        <div class="subnav-progress-badge" id="completion-badge" title="Click to toggle completion status">
+          <i class="fa-regular fa-circle" id="completion-icon"></i>
+          <span id="completion-text">Mark Completed</span>
+        </div>
+      </nav>
+    </div>
+
+    <!-- 01 — WHAT ARE WE BUILDING? (HERO) -->
+    <section id="overview" class="project-hero-section">
+      <div class="project-breadcrumb">
+        <a href="../index.html">Hardware Lab</a>
+        <span>/</span>
+        <a href="../index.html#projects">01 Fundamentals</a>
+        <span>/</span>
+        <span style="color: var(--accent-electric);">Digital I/O</span>
+      </div>
+
+      <div class="eyebrow-chip" style="margin-bottom: 14px;">
+        <span class="pulse-dot"></span>
+        <span class="eyebrow-text">EXPERIMENT 001 · DIGITAL INPUT</span>
+      </div>
+
+      <h1 class="project-title">
+        Make your Arduino detect<br>
+        <span class="gradient-text">when a button is pressed.</span>
+      </h1>
+
+      <p class="project-headline">
+        Learn how digital signals, internal pull-up resistors, and mechanical switches work.
+      </p>
+
+      <p class="project-summary-text">
+        In this experiment, you will connect a tactile pushbutton to an Arduino Uno without needing any external
+        resistors. You will discover how the microcontroller reads discrete binary levels (HIGH and LOW), why unpressed
+        inputs "float" without a pull-up resistor, and how to write clean, non-blocking code that filters out physical
+        contact bouncing.
+      </p>
+
+      <!-- Fast Specification Chips -->
+      <div class="project-meta-chips">
+        <div class="meta-chip difficulty-beginner">
+          <i class="fa-solid fa-signal"></i>
+          <span>Difficulty: <strong>Beginner</strong></span>
+        </div>
+        <div class="meta-chip time-chip">
+          <i class="fa-regular fa-clock"></i>
+          <span>Time: <strong>~10 min</strong></span>
+        </div>
+        <div class="meta-chip">
+          <i class="fa-solid fa-microchip"></i>
+          <span>Hardware: <strong>Arduino Uno + Push Button + LED</strong></span>
+        </div>
+        <div class="meta-chip">
+          <i class="fa-solid fa-layer-group"></i>
+          <span>Concepts: <strong>Digital I/O · HIGH / LOW · Pull-up · Debounce</strong></span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="hero-cta-actions">
+        <a href="#simulation" class="btn btn-primary">
+          <i class="fa-solid fa-play"></i>
+          <span>Try Simulation</span>
+        </a>
+        <a href="#circuit" class="btn btn-secondary">
+          <i class="fa-solid fa-diagram-project"></i>
+          <span>View Wiring</span>
+        </a>
+        <a href="#code" class="btn btn-secondary">
+          <i class="fa-solid fa-file-code"></i>
+          <span>View Code</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- 02 — TRY IT (INTERACTIVE SIMULATION EARLY ON THE PAGE) -->
+    <section id="simulation" class="lab-step-section">
+      <div class="step-header">
         <div>
-          <div class="eyebrow">01 · Fundamentals &middot; Digital I/O</div>
-          <h1>Digital Input / Output</h1>
-          <p>Read clean binary states (HIGH/LOW) using internal pull-up resistors and filter high-frequency mechanical
-            switch bounce with non-blocking temporal hysteresis.</p>
-          <div class="buttons"><a class="btn primary" href="#simulator">Try the simulator</a><a class="btn"
-              href="#code">Open the code</a></div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:22px"><span class="tag">BINARY LOGIC</span><span
-              class="tag">INPUT_PULLUP</span><span class="tag">50ms DEBOUNCE</span><span
-              class="tag">NON-BLOCKING</span><span class="tag">PIN D2 &amp; D13</span></div>
+          <span class="step-indicator-tag"><i class="fa-solid fa-play"></i> Step 02</span>
+          <h2 class="step-title">Try the Interactive Circuit</h2>
+          <p class="step-description">
+            Press or click the interactive button below to see how the Arduino samples the electrical pin and controls
+            the LED. Notice how pressing grounds the pin to 0V (Active-LOW).
+          </p>
         </div>
-        <div class="hero-card">
-          <div class="arduino">
-            <div class="boardtop"><span>ARDUINO UNO R3</span><span>DIGITAL DEBOUNCE LAB</span></div>
-            <div class="board"><span class="pin p5">5V</span><span class="pin d2">D2 (BTN)</span><span
-                class="pin d13">D13 (LED)</span>
-              <div class="led-indicator" id="heroLed" title="D13 Output"></div>
-              <div class="chip">ATmega328P</div>
-            </div>
-            <div class="btn-interactive" id="heroBtn" title="Click or tap to toggle input pin D2">
-              <div class="btn-cap">PRESS</div>
-            </div>
-            <div style="display:flex;justify-content:space-between;margin-top:10px;color:#8d99a8;font:11px monospace">
-              <span>PIN D2: <b id="heroD2" style="color:var(--cyan)">HIGH</b></span><span>LED D13: <b id="heroLedText"
-                  style="color:var(--muted)">OFF</b></span>
-            </div>
-          </div>
-        </div>
-      </section>
+      </div>
 
-      <section id="idea">
-        <div class="section-head">
-          <div>
-            <div class="eyebrow">Core Architecture</div>
-            <h2>The Binary Signal Model</h2>
-            <p class="lead">Microcontroller inputs are CMOS logic gates. Understanding pull-ups and contact bouncing is
-              essential for reliable physical computing.</p>
-          </div>
-        </div>
-        <div class="three grid">
-          <div class="card">
-            <div class="icon">🔌</div>
-            <h3>Floating Input Hazard</h3>
-            <p class="simple muted">An unconnected input pin acts like a radio antenna picking up static EMI, drifting
-              unpredictably between 0 and 1.</p>
-          </div>
-          <div class="card">
-            <div class="icon">🛡️</div>
-            <h3>Internal Pull-Up</h3>
-            <p class="simple muted"><code>INPUT_PULLUP</code> activates an internal 20k–50kΩ resistor to 5V,
-              establishing a defined default HIGH state until tied to GND.</p>
-          </div>
-          <div class="card">
-            <div class="icon">⏱️</div>
-            <h3>Mechanical Bounce</h3>
-            <p class="simple muted">Microscopic switch contacts physically bounce for 5–20ms upon closure, firing dozens
-              of false triggers if unfiltered.</p>
-          </div>
-        </div>
-        <div class="callout" style="margin-top:16px"><b>The Debounce Rule:</b> Never trust a mechanical transition
-          immediately. Verify that the electrical level remains unchanged for a continuous 50ms window before committing
-          the state change.</div>
-      </section>
+      <div class="glass-panel simulation-stage-card">
+        <div class="sim-stage-grid">
 
-      <section>
-        <div class="section-head">
-          <div>
-            <div class="eyebrow">Signal Pipeline</div>
-            <h2>Debounce State Machine Execution</h2>
-          </div>
-        </div>
-        <div class="flow">
-          <div class="node"><b>1 &middot; Contact Made</b>
-            <p>Spring contacts strike; pin voltage plummets to 0V (Active LOW).</p>
-          </div>
-          <div class="arrow">&rarr;</div>
-          <div class="node"><b>2 &middot; Bounce Burst</b>
-            <p>Microscopic vibrations produce 10–30 toggles in 15 milliseconds.</p>
-          </div>
-          <div class="arrow">&rarr;</div>
-          <div class="node"><b>3 &middot; Timer Reset</b>
-            <p>Any state change records timestamp: <code>lastDebounceTime = millis()</code>.</p>
-          </div>
-          <div class="arrow">&rarr;</div>
-          <div class="node"><b>4 &middot; 50ms Stability Window</b>
-            <p>Once reading remains continuous for 50ms, state is accepted.</p>
-          </div>
-        </div>
-      </section>
+          <!-- Left: Interactive Schematic Animation Stage -->
+          <div class="circuit-viz-canvas">
+            <div class="circuit-schematic-flow">
+              <!-- Node 1: Push Button -->
+              <div class="circuit-node-box" id="node-button">
+                <div class="node-icon-wrapper">
+                  <i class="fa-solid fa-hand-pointer"></i>
+                </div>
+                <span class="node-title-text">Push Button</span>
+                <span class="node-sub-text" id="node-btn-state">RELEASED</span>
+              </div>
 
-      <section id="circuit">
-        <div class="section-head">
+              <!-- Connecting Line 1 -->
+              <div class="wire-connector-line" id="wire-input">
+                <span class="wire-arrow"></span>
+              </div>
+
+              <!-- Node 2: Arduino Uno MCU -->
+              <div class="circuit-node-box" id="node-mcu">
+                <div class="node-icon-wrapper">
+                  <i class="fa-solid fa-microchip"></i>
+                </div>
+                <span class="node-title-text">Arduino Uno</span>
+                <span class="node-sub-text">Pin D2 (Input)</span>
+              </div>
+
+              <!-- Connecting Line 2 -->
+              <div class="wire-connector-line" id="wire-output">
+                <span class="wire-arrow"></span>
+              </div>
+
+              <!-- Node 3: LED Output -->
+              <div class="circuit-node-box" id="node-led">
+                <div class="node-icon-wrapper" id="node-led-icon">
+                  <i class="fa-regular fa-lightbulb"></i>
+                </div>
+                <span class="node-title-text">LED Lamp</span>
+                <span class="node-sub-text" id="node-led-state">OFF</span>
+              </div>
+            </div>
+
+            <!-- Big Tactile Pushbutton Trigger -->
+            <div class="interactive-switch-stage">
+              <button class="tactile-button" id="sim-press-btn" aria-label="Press tactile pushbutton">
+                <i class="fa-solid fa-circle-dot"></i>
+                <span>PRESS BUTTON</span>
+              </button>
+              <span class="button-hint"><i class="fa-solid fa-circle-info"></i> Click &amp; hold, or tap on mobile to trigger</span>
+            </div>
+
+            <!-- Virtual 5mm LED Lamp Indicator -->
+            <div class="virtual-led-unit">
+              <div class="led-dome" id="sim-led-dome"></div>
+              <span class="node-sub-text">Built-in LED (Pin 13)</span>
+            </div>
+          </div>
+
+          <!-- Right: Live Pin Telemetry & State Monitor -->
           <div>
-            <div class="eyebrow">Hardware Schematic</div>
-            <h2>Wiring & Pin Architecture</h2>
-            <p class="lead">By using the ATmega328P's internal pull-up resistor, you only need two wires and zero
-              external resistors.</p>
+            <h3 style="font-size: 1.15rem; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">
+              Microcontroller Pin Status
+            </h3>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px;">
+              Because <code>INPUT_PULLUP</code> is enabled, Pin D2 is held at +5V when you are not pressing the button.
+              Pressing the button connects Pin D2 directly to GND, dropping the reading to 0V.
+            </p>
+
+            <div class="telemetry-status-grid">
+              <div class="telemetry-pill">
+                <span class="telemetry-label">Pin D2 Voltage</span>
+                <span class="telemetry-val val-high" id="sim-d2-val">5.00V (HIGH)</span>
+              </div>
+              <div class="telemetry-pill">
+                <span class="telemetry-label">Binary Level</span>
+                <span class="telemetry-val val-high" id="sim-binary-val">1 (LOGIC HIGH)</span>
+              </div>
+              <div class="telemetry-pill">
+                <span class="telemetry-label">Pin D13 (LED)</span>
+                <span class="telemetry-val val-off" id="sim-d13-val">OFF (0V)</span>
+              </div>
+            </div>
+
+            <!-- Pull-up status pill -->
+            <div style="margin-top: 16px; padding: 12px 16px; background: rgba(53, 201, 138, 0.08); border: 1px solid rgba(53, 201, 138, 0.25); border-radius: var(--radius-sm); font-size: 0.82rem; color: var(--text-secondary); display: flex; align-items: center; gap: 10px;">
+              <i class="fa-solid fa-shield-halved" style="color: var(--accent-pcb-green); font-size: 1rem;"></i>
+              <div>
+                <strong style="color: var(--text-primary);">Internal Pull-Up Engaged:</strong> 
+                An internal ~30kΩ resistor is connected to 5V inside the chip, keeping the pin stable.
+              </div>
+            </div>
+
+            <!-- Mini real-time terminal feed -->
+            <div class="mini-serial-monitor" style="margin-top: 16px;">
+              <div class="serial-header">
+                <span>SERIAL MONITOR @ 9600 BAUD</span>
+                <span class="serial-status">CONNECTED</span>
+              </div>
+              <div class="serial-terminal" id="sim-serial-log" style="height: 100px;">
+                [00:00.00] Digital Input Initialized.<br>
+                [00:00.01] Pin D2 set to INPUT_PULLUP (Default: HIGH).
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 — HOW IT WORKS (WITH BEGINNER / TECHNICAL TOGGLE) -->
+    <section id="how-it-works" class="lab-step-section">
+      <div class="step-header">
+        <div>
+          <span class="step-indicator-tag"><i class="fa-solid fa-lightbulb"></i> Step 03</span>
+          <h2 class="step-title">How It Works</h2>
+          <p class="step-description">
+            Choose your learning mode. Read the plain-English intuition first, then switch to technical mode for embedded engineering details.
+          </p>
+        </div>
+
+        <!-- Mode Toggle Button Bar -->
+        <div class="mode-switch-wrapper">
+          <div class="mode-switch-bar">
+            <button class="mode-switch-btn active" data-mode="beginner" id="btn-mode-beginner">
+              <i class="fa-solid fa-user"></i>
+              <span>Beginner Mode</span>
+            </button>
+            <button class="mode-switch-btn" data-mode="technical" id="btn-mode-technical">
+              <i class="fa-solid fa-bolt"></i>
+              <span>Technical Mode</span>
+            </button>
           </div>
         </div>
-        <div class="two">
-          <div class="card">
-            <table>
-              <tr>
-                <th>Arduino Pin</th>
-                <th>Pushbutton Terminal</th>
-                <th>Electrical Behavior</th>
-              </tr>
-              <tr>
-                <td><code>Pin D2</code></td>
-                <td>Terminal A</td>
-                <td>Senses ground connection (Pulled HIGH internally)</td>
-              </tr>
-              <tr>
-                <td><code>GND</code></td>
-                <td>Terminal B</td>
-                <td>Pulls D2 to 0V when contacts close</td>
-              </tr>
-              <tr>
-                <td><code>Pin D13</code></td>
-                <td>Onboard LED (SCK)</td>
-                <td>Hardware output indicator driven HIGH/LOW</td>
-              </tr>
+      </div>
+
+      <!-- Explanation Deck -->
+      <div class="explanation-deck">
+
+        <!-- Panel 1: Beginner Explanation -->
+        <div class="explanation-panel active-panel" id="panel-beginner">
+          <div class="concept-card-grid">
+            <div class="glass-panel concept-card">
+              <div class="concept-card-icon"><i class="fa-solid fa-toggle-on"></i></div>
+              <h3 class="concept-card-title">What is a Digital Input?</h3>
+              <p class="concept-card-body">
+                An Arduino digital pin can basically tell whether it sees a <strong>HIGH</strong> or <strong>LOW</strong> electrical signal. Think of it like a light switch on your bedroom wall: it is either completely ON or completely OFF. There is no in-between.
+              </p>
+            </div>
+
+            <div class="glass-panel concept-card">
+              <div class="concept-card-icon"><i class="fa-solid fa-arrows-down-to-line"></i></div>
+              <h3 class="concept-card-title">What Happens When You Press?</h3>
+              <p class="concept-card-body">
+                When you press the button, you close a tiny metal contact. This connects Pin D2 straight to <strong>Ground (0V)</strong>. The Arduino detects that the voltage dropped to zero and knows you pressed the button!
+              </p>
+            </div>
+
+            <div class="glass-panel concept-card">
+              <div class="concept-card-icon"><i class="fa-solid fa-magnet"></i></div>
+              <h3 class="concept-card-title">The "Pull-Up" Secret</h3>
+              <p class="concept-card-body">
+                When you let go of the button, the wire is disconnected. Without a pull-up resistor, the pin would act like an antenna picking up static electricity from the air. The internal pull-up resistor gently holds the pin at 5V so it never gets confused.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 2: Technical Explanation -->
+        <div class="explanation-panel" id="panel-technical">
+          <div class="concept-card-grid">
+            <div class="glass-panel concept-card">
+              <div class="concept-card-icon"><i class="fa-solid fa-microchip"></i></div>
+              <h3 class="concept-card-title">CMOS Logic Thresholds</h3>
+              <p class="concept-card-body">
+                The ATmega328P input buffer uses CMOS transistors. When powered at VCC = 5V:
+                <br>• <strong>HIGH (Logic 1):</strong> Voltage &ge; 0.6 &times; VCC = <strong>3.0V minimum</strong>.
+                <br>• <strong>LOW (Logic 0):</strong> Voltage &le; 0.3 &times; VCC = <strong>1.5V maximum</strong>.
+                Any voltage in between is indeterminate.
+              </p>
+            </div>
+
+            <div class="glass-panel concept-card">
+              <div class="concept-card-icon"><i class="fa-solid fa-resistor"></i></div>
+              <h3 class="concept-card-title">Internal Pull-Up FET</h3>
+              <p class="concept-card-body">
+                When <code>pinMode(pin, INPUT_PULLUP)</code> is invoked, the MCU activates an internal P-channel MOSFET that connects an integrated <strong>20kΩ to 50kΩ resistor</strong> between the pin and +5V rail, sinking ~0.15mA when closed to ground.
+              </p>
+            </div>
+
+            <div class="glass-panel concept-card">
+              <div class="concept-card-icon"><i class="fa-solid fa-wave-square"></i></div>
+              <h3 class="concept-card-title">Active-LOW Architecture</h3>
+              <p class="concept-card-body">
+                In commercial embedded design, buttons almost always switch to Ground (Active-LOW). This eliminates the hazard of routing exposed +5V power lines to external chassis buttons, preventing short-circuit risks if a wire touches a metal case.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Expandable "WHY DOES A BUTTON NEED A PULL-UP?" Visual Box -->
+      <div class="why-diagram-box" id="why-pullup-box">
+        <div class="why-diagram-header" id="why-pullup-toggle">
+          <h4>
+            <i class="fa-solid fa-circle-question" style="color: var(--accent-electric);"></i>
+            <span>WHY DOES A BUTTON NEED A PULL-UP RESISTOR? (FLOATING INPUT EXPLAINED)</span>
+          </h4>
+          <i class="fa-solid fa-chevron-down why-toggle-icon"></i>
+        </div>
+
+        <div class="why-diagram-body">
+          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 16px;">
+            An unconnected microcontroller pin has extraordinarily high electrical resistance (over 100 Megaohms). This means even tiny ambient electromagnetic fields in the room will cause it to rapidly fluctuate.
+          </p>
+
+          <div class="diagram-compare-grid">
+            <!-- Bad: Floating Pin -->
+            <div class="diagram-col">
+              <div class="diagram-col-title bad">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>WITHOUT PULL-UP (FLOATING PIN)</span>
+              </div>
+              <pre class="ascii-circuit">
+  5V (Unconnected)
+       ?
+  Arduino Pin D2 ───[ Wire ]─── (Open Switch)
+       ↓
+  Antenna picks up static noise!
+  Reading jumps randomly between 0 and 1!
+              </pre>
+              <p style="font-size: 0.8rem; color: var(--accent-arduino);">
+                <strong>Result:</strong> Unpredictable ghost presses. The LED flashes uncontrollably even when nobody touches the button.
+              </p>
+            </div>
+
+            <!-- Good: Pull-Up Enabled -->
+            <div class="diagram-col">
+              <div class="diagram-col-title good">
+                <i class="fa-solid fa-circle-check"></i>
+                <span>WITH PULL-UP (INPUT_PULLUP)</span>
+              </div>
+              <pre class="ascii-circuit">
+  +5V Rail
+     │
+   [ 30kΩ Resistor ]
+     │
+     ├───► Arduino Pin D2 (Reads solid HIGH)
+     │
+  [Button]
+     │
+    GND (0V)
+              </pre>
+              <p style="font-size: 0.8rem; color: var(--accent-pcb-green);">
+                <strong>Result:</strong> Solid HIGH (+5V) when button is released. Clean LOW (0V) when button is pressed. 100% deterministic!
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 — BUILD THE CIRCUIT -->
+    <section id="circuit" class="lab-step-section">
+      <div class="step-header">
+        <div>
+          <span class="step-indicator-tag"><i class="fa-solid fa-microchip"></i> Step 04</span>
+          <h2 class="step-title">Build the Circuit</h2>
+          <p class="step-description">
+            Because we use the Arduino's built-in pull-up resistor and built-in Pin 13 LED, you only need an Arduino, a push button, and two jumper wires.
+          </p>
+        </div>
+      </div>
+
+      <div class="circuit-bom-grid">
+        <!-- Left: Bill of Materials -->
+        <div class="glass-panel bom-card">
+          <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">
+            Components Required
+          </h3>
+          <p style="font-size: 0.82rem; color: var(--text-muted);">Everything needed to assemble this build:</p>
+
+          <ul class="bom-list">
+            <li class="bom-item">
+              <span><i class="fa-solid fa-microchip" style="color: var(--accent-electric); margin-right: 8px;"></i> Arduino Uno R3</span>
+              <span class="bom-qty">× 1</span>
+            </li>
+            <li class="bom-item">
+              <span><i class="fa-solid fa-hand-pointer" style="color: var(--accent-pcb-green); margin-right: 8px;"></i> 4-Pin Tactile Pushbutton</span>
+              <span class="bom-qty">× 1</span>
+            </li>
+            <li class="bom-item">
+              <span><i class="fa-solid fa-grip" style="color: var(--accent-amber); margin-right: 8px;"></i> Half-size Solderless Breadboard</span>
+              <span class="bom-qty">× 1</span>
+            </li>
+            <li class="bom-item">
+              <span><i class="fa-solid fa-lines-leaning" style="color: var(--text-muted); margin-right: 8px;"></i> Jumper Wires (Male-to-Male)</span>
+              <span class="bom-qty">× 2</span>
+            </li>
+            <li class="bom-item">
+              <span><i class="fa-regular fa-lightbulb" style="color: var(--accent-arduino); margin-right: 8px;"></i> Built-in LED on D13</span>
+              <span class="bom-qty">Onboard</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Right: Wiring Pinout Map Table -->
+        <div class="glass-panel bom-card">
+          <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">
+            Pin-to-Component Wiring Map
+          </h3>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">Make these two physical connections:</p>
+
+          <div class="wiring-table-wrapper">
+            <table class="wiring-table">
+              <thead>
+                <tr>
+                  <th>Arduino Pin</th>
+                  <th>Component Terminal</th>
+                  <th>Wire Color</th>
+                  <th>Electrical Behavior</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="pin-badge">D2</span></td>
+                  <td>Button Terminal 1 (Leg A)</td>
+                  <td>Yellow / Blue</td>
+                  <td>Digital sensing pin (Pulled HIGH to 5V internally)</td>
+                </tr>
+                <tr>
+                  <td><span class="pin-badge" style="background: rgba(227, 75, 75, 0.15); color: #FF7070; border-color: rgba(227, 75, 75, 0.3);">GND</span></td>
+                  <td>Button Terminal 2 (Leg B)</td>
+                  <td>Black</td>
+                  <td>Ground reference (Shunts D2 to 0V when pressed)</td>
+                </tr>
+                <tr>
+                  <td><span class="pin-badge">D13</span></td>
+                  <td>Onboard LED (SCK)</td>
+                  <td>Internal Trace</td>
+                  <td>Visual status indicator driven HIGH or LOW in code</td>
+                </tr>
+              </tbody>
             </table>
           </div>
-          <div class="card">
-            <h3>⚡ Active-Low Logic Reference</h3>
-            <p><span class="tag">UNPRESSED</span> Pin D2 = <b>HIGH (1)</b> via internal 30k&Omega; pull-up to 5V.</p>
-            <p><span class="tag">PRESSED</span> Pin D2 = <b>LOW (0)</b> shunted directly to GND.</p>
-            <p><span class="tag">BENEFIT</span> Eliminates external 10k&Omega; pulldown resistors and simplifies PCBs.
-            </p>
-          </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section id="simulator">
-        <div class="section-head">
-          <div>
-            <div class="eyebrow">Interactive Lab</div>
-            <h2>Live Mechanical Bounce vs. Debounced Signal</h2>
-            <p class="lead">Press or hold the interactive button to observe mechanical contact bounce in real time on
-              the digital oscilloscope.</p>
-          </div>
+    <!-- 05 — UNDERSTAND THE CODE -->
+    <section id="code" class="lab-step-section">
+      <div class="step-header">
+        <div>
+          <span class="step-indicator-tag"><i class="fa-solid fa-code"></i> Step 05</span>
+          <h2 class="step-title">Understand the Code</h2>
+          <p class="step-description">
+            Here is the production-ready Arduino firmware implementing non-blocking 50ms software debouncing using <code>millis()</code>.
+          </p>
         </div>
-        <div class="sim">
-          <div class="control">
-            <h3>🕹️ Tactile Pushbutton</h3>
-            <p class="muted" style="margin-top:0">Click or tap to trigger hardware input:</p>
-            <div class="btn-interactive" id="labBtn">
-              <div class="btn-cap">TRIGGER</div>
+      </div>
+
+      <div class="code-walkthrough-grid">
+        <!-- Code Editor View -->
+        <div class="code-container">
+          <div class="code-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-file-code" style="color: var(--accent-electric);"></i>
+              <span style="color: var(--text-primary); font-weight: 600;">digital_io.ino</span>
+              <span class="card-tag-pill" style="font-size: 0.65rem;">C++ / AVR</span>
             </div>
-            <div class="readout">
-              <div class="read"><span>RAW PIN D2</span><b id="rawPin" style="color:var(--cyan)">HIGH (1)</b></div>
-              <div class="read"><span>FILTERED</span><b id="stableState" style="color:var(--green)">IDLE</b></div>
-              <div class="read"><span>LED (D13)</span><b id="ledStateText" style="color:var(--muted)">OFF</b></div>
-            </div>
-            <div class="callout orange" style="margin-top:17px;text-align:left"><b>Test this:</b> Click rapidly. Notice
-              how the raw line bounces wildly, while the filtered signal executes a single clean transition.</div>
+            <button class="code-copy-btn" id="copy-code-btn" onclick="copySourceCode()" aria-label="Copy code to clipboard">
+              <i class="fa-regular fa-copy"></i>
+              <span id="copy-btn-text">Copy Code</span>
+            </button>
           </div>
-          <div class="card">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-              <h3 style="margin:0">Dual Oscilloscope (Raw vs. Debounced)</h3><span class="tag" id="oscStatus">LIVE
-                SCAN</span>
-            </div>
-            <div class="chart"><canvas id="bounceChart" width="900" height="260"></canvas></div>
-            <div
-              style="display:flex;justify-content:space-between;margin-top:8px;font:11px monospace;color:var(--muted)">
-              <span><b style="color:#ff6b6b">&mdash; Raw Physical Pin</b> (shows bounce)</span><span><b
-                  style="color:#52e39b">&mdash; Debounced Output</b> (filtered 50ms)</span>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      <section>
-        <div class="section-head">
-          <div>
-            <div class="eyebrow">Engineering Insight</div>
-            <h2>Why delay() Destroys Real-Time Responsiveness</h2>
-            <p class="lead">Many beginner tutorials use <code>delay(50)</code> for debouncing. Here is why that is an
-              anti-pattern in professional systems.</p>
-          </div>
-        </div>
-        <div class="two">
-          <div class="card">
-            <h3>Blocking with delay()</h3>
-            <p class="muted"><code>delay()</code> completely halts the microcontroller instruction clock. During that
-              50ms window:</p>
-            <ul style="color:var(--red);line-height:1.8;padding-left:20px">
-              <li>Rotary encoders miss positioning pulses.</li>
-              <li>Ultrasonic distance sensors time out.</li>
-              <li>Incoming Serial characters overflow the 64-byte UART buffer.</li>
-              <li>Motor emergency stops cannot be triggered.</li>
-            </ul>
-          </div>
-          <div class="card">
-            <h3>Non-Blocking with millis()</h3>
-            <p class="muted">A state-machine tracks elapsed time using the internal hardware millisecond counter:</p>
-            <ul style="color:var(--green);line-height:1.8;padding-left:20px">
-              <li>CPU executes at full 16MHz clock rate.</li>
-              <li>Sensor polling and communication continue simultaneously.</li>
-              <li>Zero CPU cycles are wasted in idle spin-loops.</li>
-              <li>Scales cleanly to dozens of concurrent buttons.</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      <section id="code">
-        <div class="section-head">
-          <div>
-            <div class="eyebrow">Firmware Laboratory</div>
-            <h2>Microcontroller Firmware Implementation</h2>
-            <p class="lead">Comparison of clean basic toggle vs production non-blocking debounce state machine.</p>
-          </div>
-        </div>
-        <div class="code-layout">
-          <div class="code">
-            <div class="codebar"><span>digital_basic.ino</span><button class="copy" onclick="copyBasic()">Copy
-                code</button></div>
-            <pre id="basicCode"><span class="comment">/* Digital I/O Direct Button Reading (Unfiltered) */</span>
-
-<span class="kw">const</span> <span class="type">int</span> BUTTON_PIN = <span class="num">2</span>;
-<span class="kw">const</span> <span class="type">int</span> LED_PIN = <span class="num">13</span>;
-
-<span class="kw">void</span> <span class="fn">setup</span>() {
-  <span class="comment">// Enable internal pull-up resistor (Active LOW)</span>
-  <span class="fn">pinMode</span>(BUTTON_PIN, <span class="type">INPUT_PULLUP</span>);
-  <span class="fn">pinMode</span>(LED_PIN, <span class="type">OUTPUT</span>);
-}
-
-<span class="kw">void</span> <span class="fn">loop</span>() {
-  <span class="type">int</span> buttonState = <span class="fn">digitalRead</span>(BUTTON_PIN);
-
-  <span class="comment">// When pressed, button connects pin 2 to GND (LOW)</span>
-  <span class="kw">if</span> (buttonState == <span class="type">LOW</span>) {
-    <span class="fn">digitalWrite</span>(LED_PIN, <span class="type">HIGH</span>);
-  } <span class="kw">else</span> {
-    <span class="fn">digitalWrite</span>(LED_PIN, <span class="type">LOW</span>);
-  }
-}</pre>
-          </div>
-          <div class="card">
-            <h3>🔎 Register & API Analysis</h3>
-            <div class="explain-list">
-              <div class="explain-row">
-                <div class="n">1</div>
-                <div><b><code>pinMode(2, INPUT_PULLUP)</code></b>
-                  <p>Configures DDRD bit 2 to 0 (input) and PORTD bit 2 to 1, engaging the internal pull-up transistor.
-                  </p>
-                </div>
-              </div>
-              <div class="explain-row">
-                <div class="n">2</div>
-                <div><b><code>digitalRead(2)</code></b>
-                  <p>Reads the instantaneous PIND input register. Returns 1 for &gt;3.0V (HIGH) or 0 for &lt;1.5V (LOW).
-                  </p>
-                </div>
-              </div>
-              <div class="explain-row">
-                <div class="n">3</div>
-                <div><b><code>millis() - lastTime</code></b>
-                  <p>Computes elapsed time safely using unsigned long subtraction, avoiding rollover overflow bugs.</p>
-                </div>
-              </div>
-              <div class="explain-row">
-                <div class="n">4</div>
-                <div><b><code>ledState = !ledState</code></b>
-                  <p>Bitwise NOT operator toggles binary state between 1 and 0 on verified button strokes.</p>
-                </div>
-              </div>
-              <div class="explain-row">
-                <div class="n">5</div>
-                <div><b><code>digitalWrite(13, state)</code></b>
-                  <p>Drives the onboard LED buffer gate directly to VCC (+5V) or GND (0V).</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div style="margin-top:18px" class="two">
-          <div class="code">
-            <div class="codebar"><span>digital_io.ino &middot; production debounced state machine</span><button
-                class="copy" onclick="copyFull()">Copy full code</button></div>
-            <pre id="fullCode"><span class="comment">/*
- * Module: Digital I/O with Pushbutton Debounce
- * Clean non-blocking software debouncing via millis()
+          <pre class="code-block" id="source-code-block"><code><span style="color: #728096;">/*
+ * PRERITH.M — Hardware Lab
+ * Module: Digital Input with 50ms Non-Blocking Software Debounce
  */</span>
 
-<span class="kw">const</span> <span class="type">int</span> BUTTON_PIN = <span class="num">2</span>;
-<span class="kw">const</span> <span class="type">int</span> LED_PIN = <span class="num">13</span>;
+<span style="color: #4DA3FF; font-weight: 600;">const int</span> BUTTON_PIN = <span style="color: #FFB224;">2</span>;   <span style="color: #728096;">// Tactile push button on Pin 2</span>
+<span style="color: #4DA3FF; font-weight: 600;">const int</span> LED_PIN    = <span style="color: #FFB224;">13</span>;  <span style="color: #728096;">// Built-in status LED on Pin 13</span>
 
-<span class="type">int</span> ledState = <span class="type">LOW</span>;
-<span class="type">int</span> buttonState;
-<span class="type">int</span> lastButtonState = <span class="type">HIGH</span>;
+<span style="color: #4DA3FF;">int</span> ledState = <span style="color: #E34B4B;">LOW</span>;             <span style="color: #728096;">// Current LED output state</span>
+<span style="color: #4DA3FF;">int</span> buttonState;                <span style="color: #728096;">// Verified debounced reading</span>
+<span style="color: #4DA3FF;">int</span> lastButtonState = <span style="color: #35C98A;">HIGH</span>;     <span style="color: #728096;">// Previous raw reading</span>
 
-<span class="type">unsigned long</span> lastDebounceTime = <span class="num">0</span>;
-<span class="kw">const</span> <span class="type">unsigned long</span> debounceDelay = <span class="num">50</span>;
+<span style="color: #4DA3FF; font-weight: 600;">unsigned long</span> lastDebounceTime = <span style="color: #FFB224;">0</span>;     <span style="color: #728096;">// Timestamp of last toggle</span>
+<span style="color: #4DA3FF; font-weight: 600;">const unsigned long</span> debounceDelay = <span style="color: #FFB224;">50</span>; <span style="color: #728096;">// 50ms filter window</span>
 
-<span class="kw">void</span> <span class="fn">setup</span>() {
-  <span class="fn">pinMode</span>(BUTTON_PIN, <span class="type">INPUT_PULLUP</span>);
-  <span class="fn">pinMode</span>(LED_PIN, <span class="type">OUTPUT</span>);
-  <span class="fn">digitalWrite</span>(LED_PIN, ledState);
+<span style="color: #A855F7; font-weight: 600;">void</span> <span style="color: #00E5FF; font-weight: 600;">setup</span>() {
+  <span style="color: #728096;">// 1. Activate internal pull-up resistor (Default: HIGH at 5V)</span>
+  <span style="color: #35C98A;">pinMode</span>(BUTTON_PIN, <span style="color: #35C98A; font-weight: 600;">INPUT_PULLUP</span>);
 
-  Serial.<span class="fn">begin</span>(<span class="num">9600</span>);
-  Serial.<span class="fn">println</span>(F(<span class="str">"Digital I/O Ready. Pushbutton toggles D13."</span>));
+  <span style="color: #728096;">// 2. Configure output indicator pin</span>
+  <span style="color: #35C98A;">pinMode</span>(LED_PIN, <span style="color: #35C98A; font-weight: 600;">OUTPUT</span>);
+  <span style="color: #35C98A;">digitalWrite</span>(LED_PIN, ledState);
+
+  Serial.<span style="color: #00E5FF;">begin</span>(<span style="color: #FFB224;">9600</span>);
+  Serial.<span style="color: #00E5FF;">println</span>(F(<span style="color: #98C379;">"Hardware Lab: Digital Input Ready."</span>));
 }
 
-<span class="kw">void</span> <span class="fn">loop</span>() {
-  <span class="type">int</span> reading = <span class="fn">digitalRead</span>(BUTTON_PIN);
+<span style="color: #A855F7; font-weight: 600;">void</span> <span style="color: #00E5FF; font-weight: 600;">loop</span>() {
+  <span style="color: #728096;">// Read instantaneous electrical voltage on Pin 2</span>
+  <span style="color: #4DA3FF;">int</span> reading = <span style="color: #35C98A;">digitalRead</span>(BUTTON_PIN);
 
-  <span class="kw">if</span> (reading != lastButtonState) {
-    lastDebounceTime = <span class="fn">millis</span>();
+  <span style="color: #728096;">// If contact bounced or pressed, reset debounce timer</span>
+  <span style="color: #A855F7; font-weight: 600;">if</span> (reading != lastButtonState) {
+    lastDebounceTime = <span style="color: #35C98A;">millis</span>();
   }
 
-  <span class="kw">if</span> ((<span class="fn">millis</span>() - lastDebounceTime) &gt; debounceDelay) {
-    <span class="kw">if</span> (reading != buttonState) {
+  <span style="color: #728096;">// Only evaluate state once pin has stayed quiet for 50ms</span>
+  <span style="color: #A855F7; font-weight: 600;">if</span> ((<span style="color: #35C98A;">millis</span>() - lastDebounceTime) &gt; debounceDelay) {
+    <span style="color: #728096;">// If verified stable state changed:</span>
+    <span style="color: #A855F7; font-weight: 600;">if</span> (reading != buttonState) {
       buttonState = reading;
 
-      <span class="kw">if</span> (buttonState == <span class="type">LOW</span>) {
-        ledState = !ledState;
-        <span class="fn">digitalWrite</span>(LED_PIN, ledState);
-        Serial.<span class="fn">print</span>(F(<span class="str">"Button Pressed! LED is now: "</span>));
-        Serial.<span class="fn">println</span>(ledState ? F(<span class="str">"ON"</span>) : F(<span class="str">"OFF"</span>));
+      <span style="color: #728096;">// Active-LOW: Trigger on press (transition to LOW)</span>
+      <span style="color: #A855F7; font-weight: 600;">if</span> (buttonState == <span style="color: #E34B4B;">LOW</span>) {
+        ledState = !ledState; <span style="color: #728096;">// Invert LED state</span>
+        <span style="color: #35C98A;">digitalWrite</span>(LED_PIN, ledState);
+        Serial.<span style="color: #00E5FF;">print</span>(F(<span style="color: #98C379;">"Button Pressed! LED is now: "</span>));
+        Serial.<span style="color: #00E5FF;">println</span>(ledState ? F(<span style="color: #98C379;">"ON"</span>) : F(<span style="color: #98C379;">"OFF"</span>));
       }
     }
   }
 
   lastButtonState = reading;
-}</pre>
-          </div>
-          <div class="serial">
-            <div class="head">SERIAL MONITOR &middot; 9600 BAUD</div>
-            <div id="serialLines"></div>
-          </div>
+}</code></pre>
         </div>
-      </section>
 
-      <section id="challenges">
-        <div class="section-head">
-          <div>
-            <div class="eyebrow">Engineering Challenges</div>
-            <h2>Laboratory Extensions</h2>
-            <p class="lead">Expand the digital input state machine to handle advanced interaction patterns.</p>
-          </div>
-        </div>
-        <div class="three grid">
-          <div class="card challenge">
-            <h3>01 &middot; Long Press Detection</h3>
-            <p class="muted">Differentiate between a short click (&lt;500ms) and a long hold (&gt;1500ms) to reset
-              configuration.</p><span class="tag">TIMER: holdDuration &gt; 1500</span>
-          </div>
-          <div class="card challenge">
-            <h3>02 &middot; Double-Click Gesture</h3>
-            <p class="muted">Detect when two successive clicks occur within a 300ms window without freezing the main
-              loop.</p><span class="tag">STATE: clickCount == 2</span>
-          </div>
-          <div class="card challenge">
-            <h3>03 &middot; 4-State Cycle Sequencer</h3>
-            <p class="muted">Use each button stroke to advance through 4 discrete system states:
-              <code>OFF &rarr; LOW &rarr; MED &rarr; HIGH</code>.
-            </p><span class="tag">MOD: state = (state + 1) %
-              4</span>
-          </div>
-        </div>
-      </section>
+        <!-- Line-by-Line Technical Explanations -->
+        <div class="explain-stack">
+          <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">
+            Key Code Concepts
+          </h3>
 
-      <section>
-        <div class="section-head">
-          <div>
-            <div class="eyebrow">Technical Summary</div>
-            <h2>Engineering Concept Mastery</h2>
+          <div class="explain-token-card">
+            <span class="token-badge">pinMode(2, INPUT_PULLUP)</span>
+            <div class="token-desc">
+              <strong>Tells Arduino how to use the pin:</strong> Configures Pin 2 as an input and switches on the internal pull-up resistor. The pin stays HIGH until grounded.
+            </div>
+          </div>
+
+          <div class="explain-token-card">
+            <span class="token-badge">digitalRead(2)</span>
+            <div class="token-desc">
+              <strong>Reads the pin voltage:</strong> Checks the input register. Returns <code>HIGH</code> (1) if voltage is above 3.0V, or <code>LOW</code> (0) if connected to GND.
+            </div>
+          </div>
+
+          <div class="explain-token-card">
+            <span class="token-badge">millis() - lastTime</span>
+            <div class="token-desc">
+              <strong>Non-blocking time measurement:</strong> Subtracts timestamps using unsigned long arithmetic. Safely handles timer rollover without halting execution.
+            </div>
+          </div>
+
+          <div class="explain-token-card">
+            <span class="token-badge">ledState = !ledState</span>
+            <div class="token-desc">
+              <strong>Toggles binary state:</strong> The NOT operator (<code>!</code>) inverts boolean logic. Turns ON to OFF and OFF to ON with zero complex if-statements.
+            </div>
           </div>
         </div>
-        <div class="card simple">
-          <p>Core Takeaway:</p>
-          <div class="callout"><b>&ldquo;Digital inputs sample discrete 0V (LOW) and 5V (HIGH) logic thresholds.
-              Utilizing internal pull-ups prevents erratic floating states, while 50ms non-blocking millis() filtering
-              reliably eliminates physical contact bounce without halting the CPU.&rdquo;</b></div>
+      </div>
+    </section>
+
+    <!-- 06 — EXPERIMENT (TRY CHANGING IT) -->
+    <section id="experiments" class="lab-step-section">
+      <div class="step-header">
+        <div>
+          <span class="step-indicator-tag"><i class="fa-solid fa-flask"></i> Step 06</span>
+          <h2 class="step-title">Experiment: Try Changing It</h2>
+          <p class="step-description">
+            Real engineers learn by tweaking parameters and observing what breaks. Try these challenges on your board:
+          </p>
         </div>
-      </section>
-    </div>
+      </div>
+
+      <div class="challenges-grid">
+        <!-- Challenge 1 -->
+        <div class="glass-panel challenge-card">
+          <div>
+            <span class="challenge-num">EXPERIMENT 01</span>
+            <h3 class="challenge-title">Remove the Debounce Window</h3>
+            <p class="challenge-body">
+              Set <code>debounceDelay = 0</code> in the sketch. Open the Serial Monitor and press the button 10 times. How many times did the LED actually toggle?
+            </p>
+          </div>
+          <div class="challenge-test-bar">
+            <strong>Observation:</strong> You will see 15 to 30 triggers due to mechanical contact bouncing!
+          </div>
+        </div>
+
+        <!-- Challenge 2 -->
+        <div class="glass-panel challenge-card">
+          <div>
+            <span class="challenge-num">EXPERIMENT 02</span>
+            <h3 class="challenge-title">Invert the Output Logic</h3>
+            <p class="challenge-body">
+              Modify the code so the LED stays illuminated by default when released, and turns OFF only while the button is being held down.
+            </p>
+          </div>
+          <div class="challenge-test-bar">
+            <strong>Hint:</strong> <code>digitalWrite(LED_PIN, buttonState);</code>
+          </div>
+        </div>
+
+        <!-- Challenge 3 -->
+        <div class="glass-panel challenge-card">
+          <div>
+            <span class="challenge-num">EXPERIMENT 03</span>
+            <h3 class="challenge-title">Press-and-Hold Detection</h3>
+            <p class="challenge-body">
+              Differentiate between a quick tap (&lt;300ms) and a long hold (&gt;1500ms) to trigger a secondary configuration reset routine.
+            </p>
+          </div>
+          <div class="challenge-test-bar">
+            <strong>Hint:</strong> Compare <code>millis() - pressStartTime &gt; 1500</code>.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07 — GO DEEPER (ADVANCED CONCEPTS & OSCILLOSCOPE) -->
+    <section id="deeper" class="lab-step-section">
+      <div class="step-header">
+        <div>
+          <span class="step-indicator-tag"><i class="fa-solid fa-wave-square"></i> Step 07</span>
+          <h2 class="step-title">Go Deeper: Contact Bounce &amp; Registers</h2>
+          <p class="step-description">
+            Physical buttons bounce like basketballs on a gym floor. Observe microscopic contact bounce in real-time on this digital oscilloscope canvas:
+          </p>
+        </div>
+      </div>
+
+      <!-- Live Dual Oscilloscope -->
+      <div class="glass-panel simulation-stage-card" style="margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h3 style="font-size: 1.1rem; font-weight: 600; color: var(--text-primary);">
+              Live Dual Oscilloscope (Raw Pin vs. 50ms Filtered)
+            </h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">
+              Red = Raw physical voltage transitions | Green = Debounced software state
+            </span>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="osc-trigger-btn" onclick="triggerOscilloscopeBounce()">
+            <i class="fa-solid fa-wave-square"></i>
+            <span>Simulate Physical Bounce Burst</span>
+          </button>
+        </div>
+
+        <div style="background: #040507; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 12px; overflow: hidden;">
+          <canvas id="bounceCanvas" width="900" height="240" style="width: 100%; height: 240px; display: block;"></canvas>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; margin-top: 10px; font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted);">
+          <span><b style="color: #FF5A5A;">— Raw Electrical Pin:</b> Displays 10–30 rapid contact oscillations over 15ms</span>
+          <span><b style="color: #35C98A;">— Debounced Software Output:</b> 50ms hysteresis filters all noise into 1 transition</span>
+        </div>
+      </div>
+
+      <!-- Technical Deep Dive Grid -->
+      <div class="concept-card-grid">
+        <div class="glass-panel concept-card">
+          <div class="concept-card-icon"><i class="fa-solid fa-stopwatch"></i></div>
+          <h3 class="concept-card-title">Why delay() Destroys Real-Time Code</h3>
+          <p class="concept-card-body">
+            Beginners often debounce with <code>delay(50)</code>. But <code>delay()</code> halts the microcontroller's instruction pipeline completely! During those 50 milliseconds, motors cannot be steered, ultrasonic echoes time out, and emergency stops are ignored. Using non-blocking <code>millis()</code> keeps the CPU running at full 16 MHz.
+          </p>
+        </div>
+
+        <div class="glass-panel concept-card">
+          <div class="concept-card-icon"><i class="fa-solid fa-memory"></i></div>
+          <h3 class="concept-card-title">AVR Direct Register Manipulation</h3>
+          <p class="concept-card-body">
+            Under the hood, <code>pinMode(2, INPUT_PULLUP)</code> configures the ATmega328P Port D registers directly:
+            <br><code>DDRD &amp;= ~(1 &lt;&lt; 2); // Set Pin 2 as Input</code>
+            <br><code>PORTD |= (1 &lt;&lt; 2); // Engage internal pull-up resistor</code>
+            <br>Reading the pin directly bypasses function call overhead:
+            <br><code>bool state = (PIND &amp; (1 &lt;&lt; 2)); // Read PIND register</code>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 — REAL HARDWARE VS SIMULATION -->
+    <section id="reality" class="lab-step-section">
+      <div class="step-header">
+        <div>
+          <span class="step-indicator-tag"><i class="fa-solid fa-scale-balanced"></i> Step 08</span>
+          <h2 class="step-title">Real Hardware vs. Simulation</h2>
+          <p class="step-description">
+            Software simulations assume ideal physics. Real embedded engineering involves noise, physics, and tolerances:
+          </p>
+        </div>
+      </div>
+
+      <div class="reality-vs-sim-grid">
+        <div class="glass-panel reality-box">
+          <h4 style="color: var(--accent-amber);"><i class="fa-solid fa-triangle-exclamation"></i> Real Physical Hardware</h4>
+          <ul>
+            <li><strong>Mechanical Bounce:</strong> Tiny spring leaves physically vibrate for 5–20ms before settling.</li>
+            <li><strong>Contact Oxidation:</strong> Dust and tarnish increase contact resistance over time.</li>
+            <li><strong>EMI &amp; Stray Noise:</strong> Long jumper wires pick up 50Hz/60Hz mains AC hum like small antennas.</li>
+            <li><strong>ESD Vulnerability:</strong> Walking across a carpet can deliver a 4kV electrostatic shock to unprotected GPIO pins.</li>
+          </ul>
+        </div>
+
+        <div class="glass-panel sim-box">
+          <h4 style="color: var(--accent-electric);"><i class="fa-solid fa-desktop"></i> Ideal Simulation Model</h4>
+          <ul>
+            <li><strong>Instantaneous Logic:</strong> Transitions change instantaneously from 0V to 5V in zero picoseconds.</li>
+            <li><strong>Infinite Input Impedance:</strong> Zero leakage current or parasitic capacitance across breadboard rails.</li>
+            <li><strong>Clean Power Rails:</strong> Assumes a rock-solid, ripple-free 5.000V regulated supply.</li>
+            <li><strong>Zero Resistance:</strong> Wires and solderless breadboard clips have zero milliohms of impedance.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 09 — NEXT EXPERIMENT -->
+    <section id="next" class="lab-step-section">
+      <div class="step-header">
+        <div>
+          <span class="step-indicator-tag"><i class="fa-solid fa-graduation-cap"></i> Step 09</span>
+          <h2 class="step-title">Your Next Step in the Learning Path</h2>
+        </div>
+      </div>
+
+      <div class="next-experiment-banner">
+        <div class="next-exp-info">
+          <h4>NEXT EXPERIMENT · 01 FUNDAMENTALS</h4>
+          <h3 class="next-exp-title">Analog Input &amp; 10-bit ADC</h3>
+          <p class="next-exp-desc">
+            Now that you can read discrete binary (HIGH / LOW) states, learn how the Arduino measures smooth, continuous analog voltages from 0V to 5V using potentiometers, light sensors, and the built-in 10-bit Successive Approximation ADC.
+          </p>
+        </div>
+
+        <div class="next-exp-actions">
+          <a href="analog-io.html" class="btn btn-primary btn-lg">
+            <span>Continue to Analog Input</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </section>
+
   </main>
-  <footer>
-    <div class="container footer">Arduino Hardware Lab &middot; Professional Engineering Notebook</div>
+
+  <!-- FOOTER -->
+  <footer class="footer-bottom">
+    <div class="container footer-content">
+      <div class="footer-brand">
+        <svg class="pulse-icon small" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 16H8L11 6L16 26L21 11L24 16H30" stroke="#35C98A" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+        <div class="footer-meta-text">
+          <span class="footer-logo-title">PRERITH.M — HARDWARE LAB</span>
+          <span class="footer-tagline">Learning electronics by building, experimenting and understanding how things actually work.</span>
+        </div>
+      </div>
+
+      <div class="footer-copyright">
+        <p>© 2026 Prerith M. Built with Arduino, curiosity, and debugging.</p>
+        <p class="footer-subtext">01-Fundamentals · Digital Input Reference Lab</p>
+      </div>
+    </div>
   </footer>
 
+  <!-- INTERACTIVE SCRIPTS -->
   <script>
-    const heroBtn = document.getElementById('heroBtn'), labBtn = document.getElementById('labBtn'), heroLed = document.getElementById('heroLed'), heroLedText = document.getElementById('heroLedText'), heroD2 = document.getElementById('heroD2'), rawPin = document.getElementById('rawPin'), stableState = document.getElementById('stableState'), ledStateText = document.getElementById('ledStateText'), serialLines = document.getElementById('serialLines'), canvas = document.getElementById('bounceChart'), ctx = canvas.getContext('2d');
-    let isPressed = false, ledActive = false, rawTrace = Array(100).fill(1), debouncedTrace = Array(100).fill(1), bounceRemaining = 0;
-    function logSerial(msg) { let d = new Date(), ts = d.toTimeString().split(' ')[0] + '.' + String(d.getMilliseconds()).padStart(3, '0'); let line = document.createElement('div'); line.className = 'serialline'; line.innerHTML = `<span style="color:#7d8998">[${ts}]</span><span>${msg}</span>`; serialLines.prepend(line); while (serialLines.children.length > 8) serialLines.lastChild.remove() }
-    function triggerPress() { if (isPressed) return; isPressed = true; bounceRemaining = 14; heroD2.textContent = 'LOW (0)'; heroD2.style.color = 'var(--accent)'; rawPin.textContent = 'LOW (0)'; rawPin.style.color = 'var(--accent)'; stableState.textContent = 'DEBOUNCING...'; stableState.style.color = 'var(--yellow)'; setTimeout(() => { if (isPressed) { ledActive = !ledActive; heroLed.classList.toggle('on', ledActive); heroLedText.textContent = ledActive ? 'ON' : 'OFF'; heroLedText.style.color = ledActive ? 'var(--green)' : 'var(--muted)'; ledStateText.textContent = ledActive ? 'ON' : 'OFF'; ledStateText.style.color = ledActive ? 'var(--green)' : 'var(--muted)'; stableState.textContent = 'PRESSED'; stableState.style.color = 'var(--green)'; logSerial(`Button Pressed! LED is now: ${ledActive ? 'ON' : 'OFF'}`) } }, 50) }
-    function triggerRelease() { isPressed = false; bounceRemaining = 10; heroD2.textContent = 'HIGH (1)'; heroD2.style.color = 'var(--cyan)'; rawPin.textContent = 'HIGH (1)'; rawPin.style.color = 'var(--cyan)'; stableState.textContent = 'IDLE'; stableState.style.color = 'var(--green)' }
-    [heroBtn, labBtn].forEach(b => { b.addEventListener('mousedown', triggerPress); b.addEventListener('mouseup', triggerRelease); b.addEventListener('touchstart', e => { e.preventDefault(); triggerPress() }); b.addEventListener('touchend', e => { e.preventDefault(); triggerRelease() }) });
-    function drawChart() { let w = canvas.width, h = canvas.height; ctx.clearRect(0, 0, w, h); let rawVal = isPressed ? 0 : 1; if (bounceRemaining > 0) { bounceRemaining--; rawVal = Math.random() > 0.5 ? 1 : 0 } rawTrace.push(rawVal); rawTrace.shift(); debouncedTrace.push(isPressed ? 0 : 1); debouncedTrace.shift(); ctx.strokeStyle = '#ff6b6b'; ctx.lineWidth = 2.5; ctx.beginPath(); rawTrace.forEach((v, i) => { let x = i / (rawTrace.length - 1) * w, y = h * 0.35 - v * 60; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y) }); ctx.stroke(); ctx.strokeStyle = '#52e39b'; ctx.lineWidth = 3; ctx.beginPath(); debouncedTrace.forEach((v, i) => { let x = i / (debouncedTrace.length - 1) * w, y = h * 0.85 - v * 60; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y) }); ctx.stroke(); ctx.fillStyle = '#ff6b6b'; ctx.font = '11px monospace'; ctx.fillText('RAW PIN D2', 14, 35); ctx.fillStyle = '#52e39b'; ctx.fillText('DEBOUNCED OUTPUT', 14, 145); requestAnimationFrame(drawChart) }
-    requestAnimationFrame(drawChart); logSerial("System booted. Listening on Pin D2...");
-    const basic = `/* Digital I/O Direct Button Reading (Unfiltered) */\n\nconst int BUTTON_PIN = 2;\nconst int LED_PIN = 13;\n\nvoid setup() {\n  pinMode(BUTTON_PIN, INPUT_PULLUP);\n  pinMode(LED_PIN, OUTPUT);\n}\n\nvoid loop() {\n  int buttonState = digitalRead(BUTTON_PIN);\n  if (buttonState == LOW) {\n    digitalWrite(LED_PIN, HIGH);\n  } else {\n    digitalWrite(LED_PIN, LOW);\n  }\n}`;
-    const full = `const int BUTTON_PIN = 2;\nconst int LED_PIN = 13;\n\nint ledState = LOW;\nint buttonState;\nint lastButtonState = HIGH;\n\nunsigned long lastDebounceTime = 0;\nconst unsigned long debounceDelay = 50;\n\nvoid setup() {\n  pinMode(BUTTON_PIN, INPUT_PULLUP);\n  pinMode(LED_PIN, OUTPUT);\n  digitalWrite(LED_PIN, ledState);\n\n  Serial.begin(9600);\n  Serial.println(F("Digital I/O Ready. Pushbutton toggles D13."));\n}\n\nvoid loop() {\n  int reading = digitalRead(BUTTON_PIN);\n  if (reading != lastButtonState) {\n    lastDebounceTime = millis();\n  }\n\n  if ((millis() - lastDebounceTime) > debounceDelay) {\n    if (reading != buttonState) {\n      buttonState = reading;\n      if (buttonState == LOW) {\n        ledState = !ledState;\n        digitalWrite(LED_PIN, ledState);\n        Serial.print(F("Button Pressed! LED is now: "));\n        Serial.println(ledState ? F("ON") : F("OFF"));\n      }\n    }\n  }\n  lastButtonState = reading;\n}`;
-    function copyText(t, b) { navigator.clipboard.writeText(t).then(() => { let old = b.textContent; b.textContent = 'Copied ✓'; setTimeout(() => b.textContent = old, 1200) }) }
-    function copyBasic() { copyText(basic, event.target) } function copyFull() { copyText(full, event.target) }
+    // --------------------------------------------------------------------------
+    // 1. Interactive Early Circuit Simulation State
+    // --------------------------------------------------------------------------
+    const simPressBtn = document.getElementById('sim-press-btn');
+    const simLedDome = document.getElementById('sim-led-dome');
+    const simD2Val = document.getElementById('sim-d2-val');
+    const simBinaryVal = document.getElementById('sim-binary-val');
+    const simD13Val = document.getElementById('sim-d13-val');
+    const nodeBtnState = document.getElementById('node-btn-state');
+    const nodeLedState = document.getElementById('node-led-state');
+    const nodeLedIcon = document.getElementById('node-led-icon');
+    const wireInput = document.getElementById('wire-input');
+    const wireOutput = document.getElementById('wire-output');
+    const simSerialLog = document.getElementById('sim-serial-log');
+
+    let isButtonPressed = false;
+    let ledOutputState = false;
+
+    function logSimSerial(msg) {
+      if (!simSerialLog) return;
+      const d = new Date();
+      const ts = d.toTimeString().split(' ')[0] + '.' + String(d.getMilliseconds()).padStart(3, '0').slice(0, 2);
+      const line = document.createElement('div');
+      line.innerHTML = `<span style="color: #728096;">[${ts}]</span> <span>${msg}</span>`;
+      simSerialLog.prepend(line);
+      while (simSerialLog.children.length > 6) {
+        simSerialLog.lastChild.remove();
+      }
+    }
+
+    function pressSimButton() {
+      if (isButtonPressed) return;
+      isButtonPressed = true;
+
+      // Active LOW: Pin D2 drops to 0V (GND)
+      simPressBtn.classList.add('pressed');
+      simD2Val.textContent = '0.00V (GND)';
+      simD2Val.className = 'telemetry-val val-low';
+      simBinaryVal.textContent = '0 (LOGIC LOW)';
+      simBinaryVal.className = 'telemetry-val val-low';
+      nodeBtnState.textContent = 'PRESSED (GND)';
+      nodeBtnState.style.color = 'var(--accent-arduino)';
+      wireInput.classList.add('wire-active');
+
+      // Toggle LED
+      ledOutputState = !ledOutputState;
+      if (ledOutputState) {
+        simLedDome.classList.add('led-glow-active');
+        simD13Val.textContent = 'ON (+5.0V)';
+        simD13Val.className = 'telemetry-val val-on';
+        nodeLedState.textContent = 'ON (HIGH)';
+        nodeLedState.style.color = 'var(--accent-pcb-green)';
+        nodeLedIcon.style.color = '#FF4455';
+        wireOutput.classList.add('wire-active');
+        logSimSerial('Button Pressed (D2 -> LOW). LED D13 toggled: ON');
+      } else {
+        simLedDome.classList.remove('led-glow-active');
+        simD13Val.textContent = 'OFF (0.0V)';
+        simD13Val.className = 'telemetry-val val-off';
+        nodeLedState.textContent = 'OFF (LOW)';
+        nodeLedState.style.color = 'var(--text-muted)';
+        nodeLedIcon.style.color = 'var(--accent-electric)';
+        wireOutput.classList.remove('wire-active');
+        logSimSerial('Button Pressed (D2 -> LOW). LED D13 toggled: OFF');
+      }
+
+      // Also trigger bounce pulse in oscilloscope if available
+      triggerOscilloscopeBounce();
+    }
+
+    function releaseSimButton() {
+      if (!isButtonPressed) return;
+      isButtonPressed = false;
+
+      simPressBtn.classList.remove('pressed');
+      simD2Val.textContent = '5.00V (PULL-UP)';
+      simD2Val.className = 'telemetry-val val-high';
+      simBinaryVal.textContent = '1 (LOGIC HIGH)';
+      simBinaryVal.className = 'telemetry-val val-high';
+      nodeBtnState.textContent = 'RELEASED (5V)';
+      nodeBtnState.style.color = 'var(--text-muted)';
+      wireInput.classList.remove('wire-active');
+    }
+
+    if (simPressBtn) {
+      simPressBtn.addEventListener('mousedown', pressSimButton);
+      window.addEventListener('mouseup', releaseSimButton);
+
+      simPressBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        pressSimButton();
+      });
+      window.addEventListener('touchend', releaseSimButton);
+    }
+
+    // --------------------------------------------------------------------------
+    // 2. Explanation Mode Switcher (Beginner vs Technical)
+    // --------------------------------------------------------------------------
+    const btnBeginner = document.getElementById('btn-mode-beginner');
+    const btnTechnical = document.getElementById('btn-mode-technical');
+    const panelBeginner = document.getElementById('panel-beginner');
+    const panelTechnical = document.getElementById('panel-technical');
+
+    function setExplanationMode(mode) {
+      if (mode === 'beginner') {
+        btnBeginner.classList.add('active');
+        btnTechnical.classList.remove('active');
+        panelBeginner.classList.add('active-panel');
+        panelTechnical.classList.remove('active-panel');
+      } else {
+        btnTechnical.classList.add('active');
+        btnBeginner.classList.remove('active');
+        panelTechnical.classList.add('active-panel');
+        panelBeginner.classList.remove('active-panel');
+      }
+    }
+
+    if (btnBeginner && btnTechnical) {
+      btnBeginner.addEventListener('click', () => setExplanationMode('beginner'));
+      btnTechnical.addEventListener('click', () => setExplanationMode('technical'));
+    }
+
+    // --------------------------------------------------------------------------
+    // 3. Expandable "Why Does This Happen?" Diagram
+    // --------------------------------------------------------------------------
+    const whyPullupToggle = document.getElementById('why-pullup-toggle');
+    const whyPullupBox = document.getElementById('why-pullup-box');
+
+    if (whyPullupToggle && whyPullupBox) {
+      whyPullupToggle.addEventListener('click', () => {
+        whyPullupBox.classList.toggle('collapsed');
+      });
+    }
+
+    // --------------------------------------------------------------------------
+    // 4. Source Code Copy Action
+    // --------------------------------------------------------------------------
+    function copySourceCode() {
+      const codeBlock = document.getElementById('source-code-block');
+      if (!codeBlock) return;
+      const text = codeBlock.innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const copyText = document.getElementById('copy-btn-text');
+        if (copyText) {
+          copyText.textContent = 'Copied ✓';
+          setTimeout(() => {
+            copyText.textContent = 'Copy Code';
+          }, 2000);
+        }
+      });
+    }
+
+    // --------------------------------------------------------------------------
+    // 5. Dual Oscilloscope Canvas Simulation (Raw vs Debounced)
+    // --------------------------------------------------------------------------
+    const canvas = document.getElementById('bounceCanvas');
+    let ctx = canvas ? canvas.getContext('2d') : null;
+    let oscRawTrace = Array(120).fill(1);
+    let oscDebouncedTrace = Array(120).fill(1);
+    let bounceBurstCountdown = 0;
+
+    function triggerOscilloscopeBounce() {
+      bounceBurstCountdown = 16; // 16 frames of chatter
+    }
+
+    function renderOscilloscope() {
+      if (!canvas || !ctx) return;
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Draw subtle background grid
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < w; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+      for (let y = 0; y < h; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+
+      // Compute raw trace value
+      let rawVal = isButtonPressed ? 0 : 1;
+      if (bounceBurstCountdown > 0) {
+        bounceBurstCountdown--;
+        rawVal = Math.random() > 0.45 ? 1 : 0; // high-frequency chatter
+      }
+
+      oscRawTrace.push(rawVal);
+      oscRawTrace.shift();
+
+      oscDebouncedTrace.push(isButtonPressed ? 0 : 1);
+      oscDebouncedTrace.shift();
+
+      // Draw Raw Pin Trace (Red)
+      ctx.strokeStyle = '#FF5A5A';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      oscRawTrace.forEach((val, i) => {
+        const x = (i / (oscRawTrace.length - 1)) * w;
+        const y = h * 0.38 - (val * 55);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // Draw Debounced Trace (Green)
+      ctx.strokeStyle = '#35C98A';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      oscDebouncedTrace.forEach((val, i) => {
+        const x = (i / (oscDebouncedTrace.length - 1)) * w;
+        const y = h * 0.82 - (val * 55);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // Labels on canvas
+      ctx.fillStyle = '#FF7A7A';
+      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.fillText('RAW PHYSICAL PIN D2 (BOUNCE NOISE)', 16, 28);
+
+      ctx.fillStyle = '#35C98A';
+      ctx.fillText('DEBOUNCED OUTPUT (50ms HYSTERESIS)', 16, h * 0.55);
+
+      requestAnimationFrame(renderOscilloscope);
+    }
+
+    if (canvas) {
+      renderOscilloscope();
+    }
+
+    // --------------------------------------------------------------------------
+    // 6. Sticky Subnav Active Tracking (Scrollspy)
+    // --------------------------------------------------------------------------
+    const subnavLinks = document.querySelectorAll('.subnav-link');
+    const trackedSections = document.querySelectorAll('.lab-step-section, .project-hero-section');
+
+    function updateActiveSubnav() {
+      const scrollPos = window.scrollY + 140;
+      trackedSections.forEach(section => {
+        const top = section.offsetTop;
+        const height = section.offsetHeight;
+        const id = section.getAttribute('id');
+        if (scrollPos >= top && scrollPos < top + height) {
+          subnavLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === `#${id}`) {
+              link.classList.add('active');
+            }
+          });
+        }
+      });
+    }
+
+    window.addEventListener('scroll', updateActiveSubnav, { passive: true });
+
+    // --------------------------------------------------------------------------
+    // 7. LocalStorage Completion Progress
+    // --------------------------------------------------------------------------
+    const completionBadge = document.getElementById('completion-badge');
+    const completionIcon = document.getElementById('completion-icon');
+    const completionText = document.getElementById('completion-text');
+    const STORAGE_KEY = 'hwlab_exp_digital_io_done';
+
+    function loadCompletionState() {
+      const isDone = localStorage.getItem(STORAGE_KEY) === 'true';
+      if (isDone) {
+        completionIcon.className = 'fa-solid fa-circle-check';
+        completionIcon.style.color = 'var(--accent-pcb-green)';
+        completionText.textContent = 'Completed ✓';
+        completionBadge.style.background = 'rgba(53, 201, 138, 0.2)';
+      } else {
+        completionIcon.className = 'fa-regular fa-circle';
+        completionIcon.style.color = 'inherit';
+        completionText.textContent = 'Mark Completed';
+        completionBadge.style.background = 'rgba(53, 201, 138, 0.1)';
+      }
+    }
+
+    if (completionBadge) {
+      loadCompletionState();
+      completionBadge.addEventListener('click', () => {
+        const current = localStorage.getItem(STORAGE_KEY) === 'true';
+        localStorage.setItem(STORAGE_KEY, String(!current));
+        loadCompletionState();
+      });
+    }
   </script>
 </body>
 

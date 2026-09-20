@@ -47,6 +47,7 @@
       <ul class="nav-links">
         <li><a href="#hero" class="nav-link active">Home</a></li>
         <li><a href="#projects" class="nav-link">Projects</a></li>
+        <li><a href="#learning-paths" class="nav-link">Paths</a></li>
         <li><a href="#tech-map" class="nav-link">Components</a></li>
         <li><a href="#journal" class="nav-link">Journal</a></li>
         <li><a href="#journey" class="nav-link">Journey</a></li>
@@ -93,17 +94,21 @@
             <span>Explore Projects</span>
             <i class="fa-solid fa-arrow-right"></i>
           </a>
+          <a href="#sandbox" class="btn btn-secondary">
+            <i class="fa-solid fa-sliders"></i>
+            <span>Open Playground</span>
+          </a>
           <a href="https://github.com/PrerithM/Arduino-Projects" target="_blank" rel="noopener noreferrer"
             class="btn btn-secondary">
             <i class="fa-brands fa-github"></i>
-            <span>View on GitHub</span>
+            <span>GitHub</span>
           </a>
         </div>
 
         <!-- Metric badges -->
         <div class="hero-metrics">
           <div class="metric-item">
-            <span class="metric-val" id="metric-exp-count">24+</span>
+            <span class="metric-val" id="metric-exp-count">31</span>
             <span class="metric-lbl">Experiments</span>
           </div>
           <div class="metric-divider"></div>
@@ -113,8 +118,8 @@
           </div>
           <div class="metric-divider"></div>
           <div class="metric-item">
-            <span class="metric-val">∞</span>
-            <span class="metric-lbl">Learning</span>
+            <span class="metric-val">6</span>
+            <span class="metric-lbl">Core Domains</span>
           </div>
         </div>
       </div>
@@ -132,51 +137,34 @@
             <span class="note-highlight">Real World Impact. ↗</span>
           </div>
 
-          <!-- Interactive Microcontroller Interactive Board Preview -->
-          <div class="interactive-board-canvas" id="hero-board-container">
-            <div class="board-pcb">
-              <div class="board-header">
-                <span class="board-brand">ARDUINO <span class="board-model">UNO R3</span></span>
-                <span class="board-cpu">ATmega328P</span>
-              </div>
-              <div class="board-pins-top">
-                <span class="pin-indicator pin-active" title="D13 (Built-in LED)">D13</span>
-                <span class="pin-indicator pin-pwm" title="D11 (PWM)">D11</span>
-                <span class="pin-indicator pin-pwm" title="D10 (PWM)">D10</span>
-                <span class="pin-indicator pin-pwm" title="D9 (TRIG)">D9</span>
-                <span class="pin-indicator" title="D8">D8</span>
-                <span class="pin-indicator" title="D7">D7</span>
-              </div>
-              <div class="board-center-chip">
-                <div class="chip-mcu">
-                  <div class="chip-label">ATMEGA328P-PU</div>
-                  <div class="chip-leds">
-                    <span class="led-blinker led-green" title="PWR (ON)"></span>
-                    <span class="led-blinker led-amber" id="hero-l-led" title="L (D13 Output)"></span>
-                    <span class="led-blinker led-blue" id="hero-rx-led" title="RX"></span>
-                    <span class="led-blinker led-blue" id="hero-tx-led" title="TX"></span>
-                  </div>
-                </div>
-              </div>
-              <div class="board-pins-bottom">
-                <span class="pin-indicator pin-power" title="5V VCC">5V</span>
-                <span class="pin-indicator pin-power" title="GND">GND</span>
-                <span class="pin-indicator pin-analog" title="A0 (LDR/Pot)">A0</span>
-                <span class="pin-indicator pin-analog" title="A4 (SDA)">A4</span>
-                <span class="pin-indicator pin-analog" title="A5 (SCL)">A5</span>
+          <!-- Real Microcontroller Hardware Board Preview -->
+          <div class="real-board-container" id="hero-board-container">
+            <div class="real-board-media-wrap">
+              <img src="assets/images/arduino-uno.jpg" alt="Arduino Uno R3 Microcontroller on Engineering Workbench" class="real-board-photo" id="hero-board-img">
+              <div class="board-photo-overlay"></div>
+              <div class="board-status-badge">
+                <span class="pulse-dot" style="background: var(--accent-pcb-green);"></span>
+                <span>ATmega328P • 16MHz • 5.0V READY</span>
               </div>
             </div>
 
-            <!-- Mini breadboard simulation widget -->
-            <div class="mini-breadboard">
-              <div class="component-led-stack">
-                <div class="led-bulb led-red active-glow" id="hero-breadboard-led"></div>
-                <div class="resistor-bar"></div>
+            <!-- Real Hardware Spec Bar -->
+            <div class="board-specs-strip">
+              <div class="spec-cell">
+                <span class="spec-label">MCU CORE</span>
+                <span class="spec-value">ATmega328P</span>
               </div>
-              <div class="component-sensor-sonar">
-                <div class="sonar-eye"></div>
-                <div class="sonar-eye"></div>
-                <span class="sonar-txt">HC-SR04</span>
+              <div class="spec-cell">
+                <span class="spec-label">FLASH MEM</span>
+                <span class="spec-value">32 KB</span>
+              </div>
+              <div class="spec-cell">
+                <span class="spec-label">SRAM</span>
+                <span class="spec-value">2 KB</span>
+              </div>
+              <div class="spec-cell">
+                <span class="spec-label">PINOUT</span>
+                <span class="spec-value">14 Dig • 6 PWM • 6 ADC</span>
               </div>
             </div>
           </div>
@@ -194,128 +182,158 @@
     <section id="status" class="lab-status-section">
       <div class="status-grid">
 
-        <!-- Currently Exploring Radar -->
+        <!-- Currently Exploring & Explored Taxonomy -->
         <div class="glass-panel status-card">
           <div class="panel-header">
             <div class="header-title">
               <i class="fa-solid fa-satellite-dish panel-icon green-accent"></i>
               <h3>LAB STATUS</h3>
             </div>
-            <span class="status-live-tag"><span class="live-blink"></span> ACTIVE LAB</span>
+            <span class="status-live-tag"><span class="live-blink"></span> 31 EXPERIMENTS</span>
           </div>
 
-          <p class="status-subtitle">CURRENTLY EXPLORING</p>
+          <p class="status-subtitle">EXPLORED DISCIPLINES & HARDWARE</p>
 
-          <div class="progress-stack">
-            <div class="skill-meter">
-              <div class="meter-info">
-                <span class="meter-label"><i class="fa-solid fa-microchip color-arduino"></i> Arduino & Embedded</span>
-                <span class="meter-pct">90%</span>
+          <div class="explored-taxonomy-list">
+            <div class="domain-group">
+              <div class="domain-header">
+                <span class="domain-title"><i class="fa-solid fa-microchip color-arduino"></i> 01. Microcontroller Architecture</span>
+                <span class="domain-count-badge">6 Projects</span>
               </div>
-              <div class="meter-bar-track">
-                <div class="meter-bar-fill fill-arduino" style="width: 90%;"></div>
+              <div class="domain-chips">
+                <span class="domain-chip active-explored">ATmega328P</span>
+                <span class="domain-chip active-explored">GPIO Registers (DDR/PORT)</span>
+                <span class="domain-chip active-explored">10-Bit SAR ADC</span>
+                <span class="domain-chip active-explored">Fast PWM (Timer0/1/2)</span>
+                <span class="domain-chip active-explored">External Interrupts (INT0/1)</span>
+                <span class="domain-chip active-explored">Hardware UART</span>
               </div>
             </div>
 
-            <div class="skill-meter">
-              <div class="meter-info">
-                <span class="meter-label"><i class="fa-solid fa-wave-square color-sensors"></i> Sensor Fusion &
-                  I/O</span>
-                <span class="meter-pct">75%</span>
+            <div class="domain-group">
+              <div class="domain-header">
+                <span class="domain-title"><i class="fa-solid fa-wave-square color-sensors"></i> 02. Sensors & Transducers</span>
+                <span class="domain-count-badge">7 Projects</span>
               </div>
-              <div class="meter-bar-track">
-                <div class="meter-bar-fill fill-sensors" style="width: 75%;"></div>
-              </div>
-            </div>
-
-            <div class="skill-meter">
-              <div class="meter-info">
-                <span class="meter-label"><i class="fa-solid fa-robot color-robotics"></i> Robotics & Actuators</span>
-                <span class="meter-pct">55%</span>
-              </div>
-              <div class="meter-bar-track">
-                <div class="meter-bar-fill fill-robotics" style="width: 55%;"></div>
+              <div class="domain-chips">
+                <span class="domain-chip active-explored">HC-SR04 Ultrasonic</span>
+                <span class="domain-chip active-explored">DHT11 Temp/Humidity</span>
+                <span class="domain-chip active-explored">LDR Optical Sensor</span>
+                <span class="domain-chip active-explored">MPU6050 6-DOF IMU</span>
+                <span class="domain-chip active-explored">PIR Pyroelectric</span>
+                <span class="domain-chip active-explored">Infrared Transceivers</span>
+                <span class="domain-chip active-explored">Acoustic Sound Mic</span>
               </div>
             </div>
 
-            <div class="skill-meter">
-              <div class="meter-info">
-                <span class="meter-label"><i class="fa-solid fa-wifi color-iot"></i> IoT & Wireless Protocols</span>
-                <span class="meter-pct">45%</span>
+            <div class="domain-group">
+              <div class="domain-header">
+                <span class="domain-title"><i class="fa-solid fa-gears color-robotics"></i> 03. Actuators & Power</span>
+                <span class="domain-count-badge">6 Projects</span>
               </div>
-              <div class="meter-bar-track">
-                <div class="meter-bar-fill fill-iot" style="width: 45%;"></div>
+              <div class="domain-chips">
+                <span class="domain-chip active-explored">SG90 Micro Servos</span>
+                <span class="domain-chip active-explored">28BYJ-48 Steppers (ULN2003)</span>
+                <span class="domain-chip active-explored">DC Motors & L298N H-Bridge</span>
+                <span class="domain-chip active-explored">Optocoupled Relays</span>
+                <span class="domain-chip active-explored">Piezo Resonators</span>
+                <span class="domain-chip active-explored">LED Patterns</span>
               </div>
             </div>
 
-            <div class="skill-meter">
-              <div class="meter-info">
-                <span class="meter-label"><i class="fa-solid fa-eye color-cv"></i> Edge AI & Computer Vision</span>
-                <span class="meter-pct">35%</span>
+            <div class="domain-group">
+              <div class="domain-header">
+                <span class="domain-title"><i class="fa-solid fa-desktop" style="color: var(--accent-electric);"></i> 04. Display Systems</span>
+                <span class="domain-count-badge">3 Projects</span>
               </div>
-              <div class="meter-bar-track">
-                <div class="meter-bar-fill fill-cv" style="width: 35%;"></div>
+              <div class="domain-chips">
+                <span class="domain-chip active-explored">HD44780 16x2 Parallel</span>
+                <span class="domain-chip active-explored">7-Segment Multiplexing</span>
+                <span class="domain-chip active-explored">Serial Waveform Plotter</span>
+              </div>
+            </div>
+
+            <div class="domain-group">
+              <div class="domain-header">
+                <span class="domain-title"><i class="fa-solid fa-wifi color-iot"></i> 05. Protocols & Wireless</span>
+                <span class="domain-count-badge">5 Projects</span>
+              </div>
+              <div class="domain-chips">
+                <span class="domain-chip active-explored">I2C Two-Wire (SDA/SCL)</span>
+                <span class="domain-chip active-explored">SPI Synchronous Serial</span>
+                <span class="domain-chip active-explored">SoftwareSerial</span>
+                <span class="domain-chip active-explored">HC-05 Bluetooth SPP</span>
+                <span class="domain-chip active-explored">ESP8266 Wi-Fi Link</span>
+              </div>
+            </div>
+
+            <div class="domain-group">
+              <div class="domain-header">
+                <span class="domain-title"><i class="fa-solid fa-robot" style="color: var(--accent-amber);"></i> 06. Closed-Loop Automation</span>
+                <span class="domain-count-badge">4 Projects</span>
+              </div>
+              <div class="domain-chips">
+                <span class="domain-chip active-explored">Obstacle Avoiding Rover</span>
+                <span class="domain-chip active-explored">Smart Home Automation</span>
+                <span class="domain-chip active-explored">Plant Irrigation</span>
+                <span class="domain-chip active-explored">Security Alarm System</span>
               </div>
             </div>
           </div>
 
           <div class="status-footer-meta">
             <div class="meta-row">
-              <span class="meta-name">Last experiment:</span>
-              <span class="meta-val highlight">Advanced Rover (Tele-op + Sonar)</span>
+              <span class="meta-name">Flagship Interactive Lab:</span>
+              <a href="fundamentals/digital-io.html" class="meta-val highlight" style="text-decoration: underline;">01 Digital I/O (Sim + Scope) ↗</a>
             </div>
             <div class="meta-row">
-              <span class="meta-name">Next build:</span>
-              <span class="meta-val text-muted">Edge AI Visual Obstacle Avoidance</span>
+              <span class="meta-name">Next exploration:</span>
+              <span class="meta-val text-muted">Edge AI Visual Tracking</span>
             </div>
           </div>
         </div>
 
         <!-- Featured Project Hero Card -->
-        <div class="glass-panel featured-project-card" id="featured-project-box">
+        <div class="glass-panel featured-project-card featured-card-digital-io" id="featured-project-box">
           <div class="featured-badge">
-            <i class="fa-solid fa-star"></i>
-            <span>FEATURED EXPERIMENT</span>
+            <i class="fa-solid fa-bolt"></i>
+            <span>FLAGSHIP INTERACTIVE LAB</span>
           </div>
 
           <div class="featured-body">
             <div class="featured-info">
-              <h3 class="featured-title">Advanced Rover</h3>
+              <h3 class="featured-title">Digital Input & Output</h3>
               <p class="featured-desc">
-                AI-powered robotic chassis with dual-motor differential drive, ultrasonic obstacle evasion, and live
-                telemetry.
+                The foundational experiment of physical computing. Explore pull-up circuit physics, contact bounce chatter, register-level manipulation, and test the virtual interactive breadboard and real-time dual-trace oscilloscope.
               </p>
 
               <div class="tag-cloud">
-                <span class="tag">Arduino UNO</span>
-                <span class="tag">L298N Driver</span>
-                <span class="tag">HC-SR04</span>
-                <span class="tag">Bluetooth</span>
+                <span class="tag">Interactive Lab</span>
+                <span class="tag">Oscilloscope</span>
+                <span class="tag">ATmega328P</span>
+                <span class="tag">Debouncing</span>
                 <span class="tag">C++</span>
               </div>
 
-              <button class="btn btn-primary btn-sm btn-open-exp" data-id="exp-rover">
-                <span>View Experiment</span>
-                <i class="fa-solid fa-arrow-right"></i>
-              </button>
+              <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 14px;">
+                <a href="fundamentals/digital-io.html" class="btn btn-primary btn-sm">
+                  <i class="fa-solid fa-play"></i>
+                  <span>Start Experiment</span>
+                </a>
+                <button class="btn btn-secondary btn-sm btn-open-exp" data-id="exp-digital-io">
+                  <i class="fa-solid fa-file-code"></i>
+                  <span>View Specs</span>
+                </button>
+              </div>
             </div>
 
             <div class="featured-visual-art">
-              <div class="rover-schematic-preview">
-                <div class="rover-chassis-model">
-                  <div class="rover-body-box">
-                    <div class="rover-camera-turret"></div>
-                    <div class="sonar-sensor-bracket">
-                      <span class="eye-lens"></span>
-                      <span class="eye-lens"></span>
-                    </div>
-                  </div>
-                  <div class="wheel wheel-fl"></div>
-                  <div class="wheel wheel-fr"></div>
-                  <div class="wheel wheel-bl"></div>
-                  <div class="wheel wheel-br"></div>
-                </div>
-                <div class="scan-cone"></div>
+              <div class="rover-schematic-preview" style="background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(77, 163, 255, 0.2); border-radius: 8px; padding: 18px 20px; font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.6; color: var(--accent-pcb-green);">
+                <div style="color: var(--text-muted); font-size: 0.68rem; margin-bottom: 6px; letter-spacing: 0.08em;">// LIVE TELEMETRY SIMULATION</div>
+                <div style="margin-bottom: 3px;">PIN D2: <span style="color: var(--accent-electric);">PULLUP_HIGH (4.98V)</span></div>
+                <div style="margin-bottom: 3px;">PIN D13: <span style="color: #FFB224;">OFF (0.00V)</span></div>
+                <div style="margin-bottom: 3px;">DEBOUNCE: <span style="color: var(--accent-pcb-green);">STABLE (50ms WINDOW)</span></div>
+                <div>STATE: <span style="color: var(--text-primary);">READY FOR INPUT</span></div>
               </div>
             </div>
           </div>
@@ -364,13 +382,13 @@
           </div>
 
           <div class="filter-tabs" id="category-filters">
-            <button class="filter-tab active" data-filter="all">All</button>
-            <button class="filter-tab" data-filter="basic">Basic</button>
-            <button class="filter-tab" data-filter="sensors">Sensors</button>
-            <button class="filter-tab" data-filter="motors">Motors</button>
-            <button class="filter-tab" data-filter="displays">Displays</button>
-            <button class="filter-tab" data-filter="iot">IoT & Comms</button>
-            <button class="filter-tab" data-filter="robotics">Robotics</button>
+            <button class="filter-tab active" data-filter="all">All (31)</button>
+            <button class="filter-tab" data-filter="fundamentals">01 Fundamentals</button>
+            <button class="filter-tab" data-filter="sensors">02 Sensors</button>
+            <button class="filter-tab" data-filter="actuators">03 Actuators</button>
+            <button class="filter-tab" data-filter="displays">04 Displays</button>
+            <button class="filter-tab" data-filter="communication">05 Communication</button>
+            <button class="filter-tab" data-filter="automation">06 Automation</button>
           </div>
         </div>
       </div>
@@ -381,7 +399,128 @@
       </div>
     </section>
 
-    <!-- 4. INTERACTIVE HARDWARE STACK (TECHNOLOGY MAP) -->
+    <!-- 4. STRUCTURED LEARNING PATHS -->
+    <section id="learning-paths" class="learning-paths-section">
+      <div class="section-header">
+        <div class="header-left">
+          <span class="section-label">CURRICULUM</span>
+          <h2 class="section-title">STRUCTURED LEARNING PATHS</h2>
+          <p class="section-desc">Progress step-by-step from discrete electrical logic gates to multi-sensor autonomous systems.</p>
+        </div>
+      </div>
+
+      <div class="paths-grid">
+        <!-- Path 1 -->
+        <div class="path-card glass-panel">
+          <div>
+            <span class="path-step-badge">STEP 01 • FOUNDATIONS</span>
+            <h3 class="path-title"><i class="fa-solid fa-microchip color-arduino"></i> 01 Fundamentals</h3>
+            <p class="path-desc">Master digital signals, internal pull-up physics, 10-bit analog voltage sampling, high-speed PWM frequency modulation, and hardware interrupts.</p>
+            <ul class="path-milestones">
+              <li class="path-milestone-item"><i class="fa-solid fa-check"></i> Digital Output & Debounced Input</li>
+              <li class="path-milestone-item"><i class="fa-solid fa-check"></i> 10-Bit ADC Sampling & Voltage Dividers</li>
+              <li class="path-milestone-item"><i class="fa-solid fa-check"></i> Timer Interrupts & Non-Blocking Loops</li>
+            </ul>
+          </div>
+          <div class="path-card-action">
+            <a href="fundamentals/digital-io.html" class="btn btn-primary btn-sm"><span>Start Step 01</span> <i class="fa-solid fa-arrow-right"></i></a>
+            <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted);">6 Experiments</span>
+          </div>
+        </div>
+
+        <!-- Path 2 -->
+        <div class="path-card glass-panel">
+          <div>
+            <span class="path-step-badge">STEP 02 • PERCEPTION</span>
+            <h3 class="path-title"><i class="fa-solid fa-wave-square color-sensors"></i> 02 Sensors</h3>
+            <p class="path-desc">Convert physical phenomena—sound reflections, ambient photons, humidity, temperature, and 6-DOF spatial inertia—into discrete numbers.</p>
+            <ul class="path-milestones">
+              <li class="path-milestone-item"><i class="fa-solid fa-check"></i> 40kHz Ultrasonic Sonar Echo Timing</li>
+              <li class="path-milestone-item"><i class="fa-solid fa-check"></i> DHT11 Thermohygrometer Data Bus</li>
+              <li class="path-milestone-item"><i class="fa-solid fa-check"></i> MPU6050 6-Axis Gyroscope & Accel</li>
+            </ul>
+          </div>
+          <div class="path-card-action">
+            <button class="btn btn-secondary btn-sm" onclick="filterGallery('sensors')"><span>Explore Sensors</span> <i class="fa-solid fa-arrow-right"></i></button>
+            <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted);">7 Experiments</span>
+          </div>
+        </div>
+
+        <!-- Path 3 -->
+        <div class="path-card glass-panel">
+          <div>
+            <span class="path-step-badge">STEP 03 • PHYSICAL WORK</span>
+            <h3 class="path-title"><i class="fa-solid fa-gears color-robotics"></i> 03 Actuators</h3>
+            <p class="path-desc">Safely interface low-current digital microcontrollers to high-current inductive electromagnetic loads like motors, servos, and relays.</p>
+            <ul class="path-milestones">
+              <li class="path-milestone-item"><i class="fa-solid fa-check"></i> Closed-Loop SG90 Servo Kinematics</li>
+              <li class="path-milestone-item"><i class="fa-solid fa-check"></i> 28BYJ-48 Stepper Waveform Sequencing</li>
+              <li class="path-milestone-item"><i class="fa-solid fa-check"></i> L298N Dual H-Bridge Direction & PWM</li>
+            </ul>
+          </div>
+          <div class="path-card-action">
+            <button class="btn btn-secondary btn-sm" onclick="filterGallery('actuators')"><span>Explore Actuators</span> <i class="fa-solid fa-arrow-right"></i></button>
+            <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted);">6 Experiments</span>
+          </div>
+        </div>
+
+        <!-- Path 4 -->
+        <div class="path-card glass-panel">
+          <div>
+            <span class="path-step-badge">STEP 04 • USER INTERFACE</span>
+            <h3 class="path-title"><i class="fa-solid fa-desktop" style="color: var(--accent-electric);"></i> 04 Displays</h3>
+            <p class="path-desc">Present real-time computational state to humans through alphanumeric character LCDs, persistent 7-segment digit multiplexing, and waveform streaming.</p>
+            <ul class="path-milestones">
+              <li class="path-milestone-item"><i class="fa-solid fa-check"></i> HD44780 4-bit Parallel Bus Display</li>
+              <li class="path-milestone-item"><i class="fa-solid fa-check"></i> Time-Division Multiplexed 7-Segments</li>
+              <li class="path-milestone-item"><i class="fa-solid fa-check"></i> High-Speed Serial Waveform Streaming</li>
+            </ul>
+          </div>
+          <div class="path-card-action">
+            <button class="btn btn-secondary btn-sm" onclick="filterGallery('displays')"><span>Explore Displays</span> <i class="fa-solid fa-arrow-right"></i></button>
+            <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted);">3 Experiments</span>
+          </div>
+        </div>
+
+        <!-- Path 5 -->
+        <div class="path-card glass-panel">
+          <div>
+            <span class="path-step-badge">STEP 05 • CONNECTIVITY</span>
+            <h3 class="path-title"><i class="fa-solid fa-wifi color-iot"></i> 05 Communication</h3>
+            <p class="path-desc">Interconnect microcontrollers with external chips, computers, and wireless networks using standard synchronous and asynchronous buses.</p>
+            <ul class="path-milestones">
+              <li class="path-milestone-item"><i class="fa-solid fa-check"></i> I2C Multi-Drop Bus Addressing</li>
+              <li class="path-milestone-item"><i class="fa-solid fa-check"></i> Full-Duplex Synchronous SPI Bus</li>
+              <li class="path-milestone-item"><i class="fa-solid fa-check"></i> HC-05 Bluetooth SPP Serial Telemetry</li>
+            </ul>
+          </div>
+          <div class="path-card-action">
+            <button class="btn btn-secondary btn-sm" onclick="filterGallery('communication')"><span>Explore Protocols</span> <i class="fa-solid fa-arrow-right"></i></button>
+            <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted);">5 Experiments</span>
+          </div>
+        </div>
+
+        <!-- Path 6 -->
+        <div class="path-card glass-panel">
+          <div>
+            <span class="path-step-badge">STEP 06 • FULL SYSTEMS</span>
+            <h3 class="path-title"><i class="fa-solid fa-robot" style="color: var(--accent-amber);"></i> 06 Automation</h3>
+            <p class="path-desc">Synthesize sensors, decision logic, feedback loops, and physical actuators into intelligent, self-regulating machines.</p>
+            <ul class="path-milestones">
+              <li class="path-milestone-item"><i class="fa-solid fa-check"></i> Ultrasonic Obstacle Evasion Rover</li>
+              <li class="path-milestone-item"><i class="fa-solid fa-check"></i> Ambient Sensing Smart Lighting</li>
+              <li class="path-milestone-item"><i class="fa-solid fa-check"></i> Closed-Loop Plant Irrigation System</li>
+            </ul>
+          </div>
+          <div class="path-card-action">
+            <button class="btn btn-secondary btn-sm" onclick="filterGallery('automation')"><span>Explore Automation</span> <i class="fa-solid fa-arrow-right"></i></button>
+            <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted);">4 Experiments</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. INTERACTIVE HARDWARE STACK (TECHNOLOGY MAP) -->
     <section id="tech-map" class="tech-map-section">
       <div class="section-header center-header">
         <span class="section-label">ARCHITECTURE</span>
