@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Hardware Interrupts & Event Handling — Arduino Hardware Lab</title>
+  <meta name="description"
+    content="Trap microsecond-level hardware triggers with zero latency. Master ISRs, volatile memory, and atomic operations.">
+    <!-- Fonts & Icons matching main website -->
+  <link rel=preconnect href="https://fonts.googleapis.com">
+  <link rel=preconnect href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg: #07090d;
+      --panel: #0d1118;
+      --panel2: #111722;
+      --line: #202938;
+      --text: #eef2f7;
+      --muted: #8c98a9;
+      --accent: #ff5a36;
+      --cyan: #39d7ff;
+      --green: #52e39b;
+      --yellow: #ffd166;
+      --purple: #c792ea;
+      --blue: #82aaff;
+      --red: #ff6b6b;
+      --shadow: 0 18px 60px #0007
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 70% 0%, #14202d 0, #07090d 34%), var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      line-height: 1.55
+    }
+
+    body:before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .11;
+      background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, black, transparent 75%)
+    }
+
+    .container {
+      width: min(1180px, calc(100% - 40px));
+      margin: auto
+    }
+
+        /* Floating Navbar matching Main Website */
+    .navbar-wrapper {
+      position: fixed;
+      top: 16px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      z-index: 100;
+      padding: 0 20px;
+    }
+
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1100px;
+      height: 64px;
+      padding: 0 18px;
+      border-radius: 9999px;
+      background: rgba(13, 15, 18, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .pulse-icon {
+      width: 26px;
+      height: 26px;
+      filter: drop-shadow(0 0 8px #35C98A);
+    }
+
+    .brand-text {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      font-family: 'Outfit', sans-serif;
+      color: #eef2f7;
+    }
+
+    .brand-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(53, 201, 138, 0.12);
+      color: #35C98A;
+      border: 1px solid rgba(53, 201, 138, 0.3);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-links {
+      display: flex;
+      list-style: none;
+      gap: 4px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 4px 6px;
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      margin: 0;
+    }
+
+    .nav-link {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #8c98a9;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .nav-link:hover {
+      color: #eef2f7;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-link.active {
+      color: #eef2f7;
+      background: rgba(255, 255, 255, 0.12);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--cyan);
+      background: rgba(57, 215, 255, 0.08);
+      border: 1px solid rgba(57, 215, 255, 0.25);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+
+    .nav-back-btn:hover {
+      background: rgba(57, 215, 255, 0.16);
+      border-color: rgba(57, 215, 255, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .btn-github-nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #eef2f7;
+      padding: 6px 15px;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .btn-github-nav:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 860px) {
+      .nav-links { display: none; }
+    }
+
+    .hero { padding: 104px 0 62px;
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 54px;
+      align-items: center
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase
+    }
+
+    .hero h1 {
+      font-size: clamp(43px, 6vw, 75px);
+      line-height: .97;
+      letter-spacing: -.055em;
+      margin: 14px 0 20px
+    }
+
+    .hero p {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 650px
+    }
+
+    .buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 28px;
+      flex-wrap: wrap
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: #111722;
+      color: #fff;
+      padding: 12px 17px;
+      border-radius: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #090a0c
+    }
+
+    .btn:hover {
+      transform: translateY(-1px)
+    }
+
+    .hero-card,
+    .card {
+      background: rgba(13, 17, 24, .9);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: var(--shadow)
+    }
+
+    .arduino {
+      border: 1px solid #384352;
+      border-radius: 16px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden
+    }
+
+    .boardtop {
+      display: flex;
+      justify-content: space-between;
+      color: #9ca7b6;
+      font: 12px monospace
+    }
+
+    .board {
+      margin: 18px auto;
+      width: 88%;
+      height: 160px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #167c62, #0c5648);
+      border: 2px solid #2ba980;
+      position: relative
+    }
+
+    .chip {
+      position: absolute;
+      width: 100px;
+      height: 45px;
+      left: 50%;
+      top: 55px;
+      transform: translateX(-50%);
+      background: #15191f;
+      border: 1px solid #4b5664;
+      border-radius: 5px;
+      display: grid;
+      place-items: center;
+      font: 11px monospace;
+      color: #cdd5df
+    }
+
+    .pin {
+      position: absolute;
+      font: 10px monospace
+    }
+
+    .p5 {
+      left: 8px;
+      top: 10px
+    }
+
+    .d2 {
+      right: 8px;
+      top: 10px
+    }
+
+    .d13 {
+      left: 8px;
+      bottom: 10px
+    }
+
+    .led-indicator {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #203028;
+      border: 2px solid #3a5040;
+      top: 20px;
+      left: 50px;
+      transition: .15s
+    }
+
+    .led-indicator.on {
+      background: #ffd166;
+      border-color: #fff1b0;
+      box-shadow: 0 0 16px #ffd166
+    }
+
+    .btn-interactive {
+      width: 110px;
+      height: 70px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #1f2937, #111827);
+      border: 2px solid var(--accent);
+      box-shadow: 0 6px 0 #000;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      margin: 18px auto;
+      user-select: none;
+      transition: transform .08s
+    }
+
+    .btn-interactive:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #000
+    }
+
+    section {
+      padding: 66px 0
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: end;
+      margin-bottom: 24px
+    }
+
+    h2 {
+      font-size: 34px;
+      letter-spacing: -.035em;
+      margin: 0 0 6px
+    }
+
+    .lead {
+      color: var(--muted);
+      max-width: 700px;
+      margin: 0
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px
+    }
+
+    .three {
+      grid-template-columns: repeat(3, 1fr)
+    }
+
+    .two {
+      grid-template-columns: repeat(2, 1fr)
+    }
+
+    .flow {
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .node {
+      flex: 1;
+      min-width: 160px;
+      padding: 18px;
+      background: #0b1017;
+      border: 1px solid var(--line);
+      border-radius: 14px
+    }
+
+    .arrow {
+      display: grid;
+      place-items: center;
+      color: var(--cyan);
+      font-size: 22px
+    }
+
+    .node p {
+      color: var(--muted);
+      font-size: 14px
+    }
+
+    .icon {
+      font-size: 28px
+    }
+
+    .simple {
+      font-size: 16px
+    }
+
+    .callout {
+      background: #101722;
+      border: 1px solid #2b394b;
+      border-left: 3px solid var(--cyan);
+      padding: 17px;
+      border-radius: 12px
+    }
+
+    .callout.orange {
+      border-left-color: var(--accent)
+    }
+
+    .callout.green {
+      border-left-color: var(--green)
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 13px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    th {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--muted)
+    }
+
+    td code {
+      color: var(--cyan)
+    }
+
+    .sim {
+      display: grid;
+      grid-template-columns: .9fr 1.1fr;
+      gap: 18px
+    }
+
+    .control {
+      background: #090d13;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px
+    }
+
+    .readout {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 18px
+    }
+
+    .read {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #0c1118
+    }
+
+    .read span {
+      font: 11px monospace;
+      color: var(--muted)
+    }
+
+    .read b {
+      font-size: 21px;
+      display: block
+    }
+
+    .chart {
+      height: 260px;
+      background: repeating-linear-gradient(0deg, transparent 0 39px, #18202b 40px), repeating-linear-gradient(90deg, transparent 0 59px, #18202b 60px);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden
+    }
+
+    .chart canvas {
+      width: 100%;
+      height: 100%
+    }
+
+    .code-layout {
+      display: grid;
+      grid-template-columns: 1.35fr .65fr;
+      gap: 16px
+    }
+
+    .code {
+      background: #080b10;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden
+    }
+
+    .codebar {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font: 12px monospace
+    }
+
+    .copy {
+      border: 1px solid #354052;
+      background: #141b25;
+      color: #dce5ee;
+      padding: 6px 9px;
+      border-radius: 7px;
+      cursor: pointer;
+      font: 12px monospace
+    }
+
+    .copy:hover {
+      border-color: var(--cyan)
+    }
+
+    .code pre {
+      margin: 0;
+      padding: 20px;
+      overflow: auto;
+      font-size: 13px;
+      line-height: 1.7;
+      max-height: 600px
+    }
+
+    .kw {
+      color: var(--purple)
+    }
+
+    .type {
+      color: var(--blue)
+    }
+
+    .fn {
+      color: var(--yellow)
+    }
+
+    .num {
+      color: #f78c6c
+    }
+
+    .str {
+      color: var(--green)
+    }
+
+    .comment {
+      color: #6f849b
+    }
+
+    .var {
+      color: #f8f8f2
+    }
+
+    .serial {
+      background: #05080c;
+      border: 1px solid #1e2835;
+      border-radius: 16px;
+      padding: 18px;
+      font: 12px monospace;
+      min-height: 280px;
+      color: #a9f0ce;
+      overflow: hidden
+    }
+
+    .serial .head {
+      color: #7d8998;
+      margin-bottom: 12px
+    }
+
+    .serialline {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      gap: 12px
+    }
+
+    .explain-list {
+      display: grid;
+      gap: 11px
+    }
+
+    .explain-row {
+      display: grid;
+      grid-template-columns: 35px 1fr;
+      gap: 11px
+    }
+
+    .explain-row .n {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #182232;
+      color: var(--cyan);
+      display: grid;
+      place-items: center;
+      font-weight: 800
+    }
+
+    .explain-row p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .challenge {
+      border-left: 3px solid var(--accent)
+    }
+
+    .tag {
+      display: inline-block;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 9px;
+      color: #b8c3d0;
+      font: 11px monospace
+    }
+
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 35px 0;
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    @media(max-width:850px) {
+
+      .hero,
+      .sim,
+      .two,
+      .three,
+      .code-layout {
+        grid-template-columns: 1fr
+      }
+
+      .links {
+        display: none
+      }
+
+      .readout {
+        grid-template-columns: 1fr
+      }
+
+      .hero { padding-top: 96px
+      }
+    }
+  </style>
+</head>
+
+<body>
+    <!-- Floating Island Header matching main website -->
+  <header class="navbar-wrapper">
+    <nav class="navbar">
+      <a href="../index.html" class="brand-logo">
+        <svg class="pulse-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 16H8L11 6L16 26L21 11L24 16H30" stroke="#35C98A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="brand-text">
+          <span class="brand-name">PRERITH.M</span>
+          <span class="brand-badge">HW LAB</span>
+        </div>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#idea" class="nav-link">Architecture</a></li>
+        <li><a href="#simulator" class="nav-link active">Simulator</a></li>
+        <li><a href="#circuit" class="nav-link">Circuit</a></li>
+        <li><a href="#code" class="nav-link">Code</a></li>
+        <li><a href="#challenges" class="nav-link">Challenges</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="../index.html" class="nav-back-btn">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>Main Lab</span>
+        </a>
+        <a href="https://github.com/PrerithM/Arduino-Projects/tree/main/01-Fundamentals/Interrupts" target="_blank" rel="noopener noreferrer" class="btn-github-nav">
+          <i class="fa-brands fa-github"></i>
+          <span>GitHub</span>
+          <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.65rem; opacity: 0.7;"></i>
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <div class="container">
+      <section class="hero">
+        <div>
+          <div class="eyebrow">01 · Fundamentals &middot; Interrupts</div>
+          <h1>Hardware Interrupts (ISR)</h1>
+          <p>Trap external physical events instantaneously at hardware speeds. Eliminate polling latency, master
+            volatile register safety, and perform atomic multi-byte reads.</p>
+          <div class="buttons"><a class="btn primary" href="#simulator">Try the simulator</a><a class="btn"
+              href="#code">Open the code</a></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:22px"><span class="tag">ZERO LATENCY</span><span
+              class="tag">INT0 / PIN D2</span><span class="tag">VOLATILE REGISTER</span><span class="tag">ATOMIC
+              READING</span><span class="tag">AVR HARDWARE</span></div>
+        </div>
+        <div class="hero-card">
+          <div class="arduino">
+            <div class="boardtop"><span>ARDUINO UNO R3</span><span>INT0 HARDWARE ENGINE</span></div>
+            <div class="board"><span class="pin p5">5V</span><span class="pin d2">D2 (INT0)</span><span
+                class="pin d13">D13 (STATUS)</span>
+              <div class="led-indicator" id="heroLed" title="ISR Status LED"></div>
+              <div class="chip">ATmega328P</div>
+            </div>
+            <div class="btn-interactive" id="heroPulseBtn">
+              <div style="font-weight:900;color:var(--accent);font-size:13px;letter-spacing:.05em">FIRE PULSE</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:10px;color:#8d99a8;font:11px monospace">
+              <span>EVENTS: <b id="heroCounter" style="color:var(--cyan)">0</b></span><span>LATENCY: <b
+                  style="color:var(--green)">&lt; 3.7 &micro;s</b></span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="idea">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Core Architecture</div>
+            <h2>The Interrupt Paradigm</h2>
+            <p class="lead">Why software polling fails in high-speed physical computing and how asynchronous hardware
+              interrupts solve it.</p>
+          </div>
+        </div>
+        <div class="three grid">
+          <div class="card">
+            <div class="icon">🐢</div>
+            <h3>Polling Inefficiency</h3>
+            <p class="simple muted">Repeatedly calling <code>digitalRead()</code> inside <code>loop()</code> burns CPU
+              cycles and misses events if the processor is busy executing a calculation.</p>
+          </div>
+          <div class="card">
+            <div class="icon">⚡</div>
+            <h3>Hardware ISR Vector</h3>
+            <p class="simple muted">Pin transitions flip a hardware gate in 4 clock cycles (~250ns), instantly
+              suspending main execution to service the event handler.</p>
+          </div>
+          <div class="card">
+            <div class="icon">🔒</div>
+            <h3>Volatile Memory</h3>
+            <p class="simple muted">Tells the C++ compiler that variables modified inside an ISR can change
+              asynchronously, forcing memory fetches instead of register caching.</p>
+          </div>
+        </div>
+        <div class="callout" style="margin-top:16px"><b>The Core Rule:</b> Keep Interrupt Service Routines (ISRs)
+          minimal. Flag the event, increment counters, and exit immediately (&lt;10&micro;s). Handle heavy processing in
+          the main loop.</div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Signal Pipeline</div>
+            <h2>Hardware Interrupt Vector Execution</h2>
+          </div>
+        </div>
+        <div class="flow">
+          <div class="node"><b>1 &middot; Falling Edge Trigger</b>
+            <p>External sensor brings D2 to 0V (FALLING transition).</p>
+          </div>
+          <div class="arrow">&rarr;</div>
+          <div class="node"><b>2 &middot; EIFR Flag Set</b>
+            <p>Hardware sets External Interrupt Flag Register bit.</p>
+          </div>
+          <div class="arrow">&rarr;</div>
+          <div class="node"><b>3 &middot; Vector Jump</b>
+            <p>Program counter jumps directly to ISR vector address.</p>
+          </div>
+          <div class="arrow">&rarr;</div>
+          <div class="node"><b>4 &middot; Resume loop()</b>
+            <p>Global interrupts re-enable; main execution continues unhindered.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="circuit">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Hardware Schematic</div>
+            <h2>Wiring & Pin Architecture</h2>
+            <p class="lead">On the Arduino Uno (ATmega328P), only pins D2 and D3 support dedicated external hardware
+              interrupts.</p>
+          </div>
+        </div>
+        <div class="two">
+          <div class="card">
+            <table>
+              <tr>
+                <th>Arduino Pin</th>
+                <th>Interrupt Line</th>
+                <th>Supported Trigger Modes</th>
+              </tr>
+              <tr>
+                <td><code>Pin D2</code></td>
+                <td>INT0 (Vector 1)</td>
+                <td>LOW, CHANGE, RISING, FALLING</td>
+              </tr>
+              <tr>
+                <td><code>Pin D3</code></td>
+                <td>INT1 (Vector 2)</td>
+                <td>LOW, CHANGE, RISING, FALLING</td>
+              </tr>
+              <tr>
+                <td><code>Pin D13</code></td>
+                <td>Status LED</td>
+                <td>Toggles on each caught interrupt pulse</td>
+              </tr>
+            </table>
+          </div>
+          <div class="card">
+            <h3>⚡ Critical ISR Constraints</h3>
+            <p><span class="tag">NO DELAY()</span> Millis counters rely on Timer0 interrupts, which are disabled during
+              ISRs.</p>
+            <p><span class="tag">NO SERIAL</span> Serial transmission uses interrupts; calling it inside an ISR risks
+              deadlock.</p>
+            <p><span class="tag">ATOMICITY</span> Read 32-bit variables using <code>noInterrupts()</code> /
+              <code>interrupts()</code> guards.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="simulator">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Interactive Lab</div>
+            <h2>Polling vs. Hardware Interrupt Simulator</h2>
+            <p class="lead">Compare how software polling loses events during CPU busy states versus how an ISR catches
+              100% of triggers with microsecond precision.</p>
+          </div>
+        </div>
+        <div class="sim">
+          <div class="control">
+            <div style="display:flex;gap:10px;justify-content:center;margin-bottom:14px">
+              <button class="btn primary" id="btnModeISR">Hardware ISR Mode</button>
+              <button class="btn" id="btnModePoll">Polling Mode (Busy Loop)</button>
+            </div>
+            <div class="btn-interactive" id="labPulseBtn">
+              <div style="font-weight:900;color:#fff;font-size:13px">SEND PULSE</div>
+            </div>
+            <div class="readout">
+              <div class="read"><span>PULSES SENT</span><b id="sentCount" style="color:var(--text)">0</b></div>
+              <div class="read"><span>PULSES CAUGHT</span><b id="caughtCount" style="color:var(--green)">0</b></div>
+              <div class="read"><span>MISSED EVENTS</span><b id="missedCount" style="color:var(--red)">0</b></div>
+            </div>
+            <div class="callout orange" style="margin-top:17px;text-align:left"><b id="modeDesc">Running Hardware
+                Interrupt (INT0):</b> Zero latency. Every single pulse is trapped instantly regardless of main loop
+              load.</div>
+          </div>
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <h3 style="margin:0">Live Hardware Pulse Stream</h3><span class="tag" id="scopeStatus">INT0 ARMED</span>
+            </div>
+            <div class="chart"><canvas id="isrChart" width="900" height="260"></canvas></div>
+            <div
+              style="display:flex;justify-content:space-between;margin-top:8px;font:11px monospace;color:var(--muted)">
+              <span>Falling Edge: <b style="color:var(--cyan)">HIGH &rarr; LOW (0V)</b></span><span>Capture Status: <b
+                  style="color:var(--green)" id="capStatus">INSTANTANEOUS</b></span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="code">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Firmware Laboratory</div>
+            <h2>Microcontroller Firmware Implementation</h2>
+            <p class="lead">Production hardware interrupt service routine with debouncing and atomic memory retrieval.
+            </p>
+          </div>
+        </div>
+        <div class="code-layout">
+          <div class="code">
+            <div class="codebar"><span>interrupts_basic.ino</span><button class="copy" onclick="copyBasic()">Copy
+                code</button></div>
+            <pre id="basicCode"><span class="comment">/* Minimal Hardware Interrupt Service Routine */</span>
+
+<span class="kw">const</span> <span class="type">byte</span> INTERRUPT_PIN = <span class="num">2</span>;
+<span class="kw">const</span> <span class="type">byte</span> LED_PIN = <span class="num">13</span>;
+
+<span class="comment">// volatile ensures variable is re-fetched from RAM</span>
+<span class="kw">volatile</span> <span class="type">bool</span> ledState = <span class="type">false</span>;
+
+<span class="kw">void</span> <span class="fn">isrToggle</span>() {
+  ledState = !ledState;
+  <span class="fn">digitalWrite</span>(LED_PIN, ledState);
+}
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">pinMode</span>(INTERRUPT_PIN, <span class="type">INPUT_PULLUP</span>);
+  <span class="fn">pinMode</span>(LED_PIN, <span class="type">OUTPUT</span>);
+
+  <span class="comment">// Attach INT0 on Pin 2 to trigger on FALLING edge</span>
+  <span class="fn">attachInterrupt</span>(<span class="fn">digitalPinToInterrupt</span>(INTERRUPT_PIN), isrToggle, <span class="type">FALLING</span>);
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="comment">// Main loop can perform heavy tasks without missing button events!</span>
+  <span class="fn">delay</span>(<span class="num">1000</span>);
+}</pre>
+          </div>
+          <div class="card">
+            <h3>🔎 Register & API Analysis</h3>
+            <div class="explain-list">
+              <div class="explain-row">
+                <div class="n">1</div>
+                <div><b><code>attachInterrupt(0, fn, FALLING)</code></b>
+                  <p>Maps ATmega328P external interrupt INT0 to execute the designated ISR when signal drops from 5V to
+                    0V.</p>
+                </div>
+              </div>
+              <div class="explain-row">
+                <div class="n">2</div>
+                <div><b><code>volatile unsigned long</code></b>
+                  <p>Informs compiler optimization passes to never store this variable in CPU working registers.</p>
+                </div>
+              </div>
+              <div class="explain-row">
+                <div class="n">3</div>
+                <div><b><code>noInterrupts() / interrupts()</code></b>
+                  <p>Creates an atomic critical section when copying multi-byte integers on an 8-bit architecture.</p>
+                </div>
+              </div>
+              <div class="explain-row">
+                <div class="n">4</div>
+                <div><b><code>micros() inside ISR</code></b>
+                  <p>Valid for microsecond debouncing delta calculations without causing timer halts.</p>
+                </div>
+              </div>
+              <div class="explain-row">
+                <div class="n">5</div>
+                <div><b><code>Heavy loop() Delay</code></b>
+                  <p>Simulates intensive math tasks. Hardware interrupts fire concurrently with zero jitter.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:18px" class="two">
+          <div class="code">
+            <div class="codebar"><span>interrupts.ino &middot; production atomic ISR</span><button class="copy"
+                onclick="copyFull()">Copy full code</button></div>
+            <pre id="fullCode"><span class="comment">/*
+ * Module: Hardware Interrupt Service Routine (ISR)
+ * Features: Debounced ISR + Atomic variable transfer
+ */</span>
+
+<span class="kw">const</span> <span class="type">byte</span> INTERRUPT_PIN = <span class="num">2</span>;
+<span class="kw">const</span> <span class="type">byte</span> STATUS_LED = <span class="num">13</span>;
+
+<span class="kw">volatile</span> <span class="type">unsigned long</span> pulseCount = <span class="num">0</span>;
+<span class="kw">volatile</span> <span class="type">bool</span> newPulseFlag = <span class="type">false</span>;
+
+<span class="kw">volatile</span> <span class="type">unsigned long</span> lastIsrMicros = <span class="num">0</span>;
+<span class="kw">const</span> <span class="type">unsigned long</span> DEBOUNCE_MICROS = <span class="num">150000</span>;
+
+<span class="kw">void</span> <span class="fn">isrTrigger</span>() {
+  <span class="type">unsigned long</span> currentMicros = <span class="fn">micros</span>();
+  <span class="kw">if</span> (currentMicros - lastIsrMicros &gt; DEBOUNCE_MICROS) {
+    pulseCount++;
+    newPulseFlag = <span class="type">true</span>;
+    lastIsrMicros = currentMicros;
+  }
+}
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">pinMode</span>(INTERRUPT_PIN, <span class="type">INPUT_PULLUP</span>);
+  <span class="fn">pinMode</span>(STATUS_LED, <span class="type">OUTPUT</span>);
+  Serial.<span class="fn">begin</span>(<span class="num">9600</span>);
+
+  <span class="fn">attachInterrupt</span>(<span class="fn">digitalPinToInterrupt</span>(INTERRUPT_PIN), isrTrigger, <span class="type">FALLING</span>);
+  Serial.<span class="fn">println</span>(F(<span class="str">"Hardware Interrupt armed on Pin D2."</span>));
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="comment">// Simulate heavy computation:</span>
+  <span class="fn">delay</span>(<span class="num">500</span>);
+
+  <span class="kw">if</span> (newPulseFlag) {
+    <span class="comment">// Atomic copy:</span>
+    <span class="fn">noInterrupts</span>();
+    <span class="type">unsigned long</span> currentCount = pulseCount;
+    newPulseFlag = <span class="type">false</span>;
+    <span class="fn">interrupts</span>();
+
+    Serial.<span class="fn">print</span>(F(<span class="str">"Interrupt Caught! Total Events: "</span>));
+    Serial.<span class="fn">println</span>(currentCount);
+
+    <span class="fn">digitalWrite</span>(STATUS_LED, !<span class="fn">digitalRead</span>(STATUS_LED));
+  }
+}</pre>
+          </div>
+          <div class="serial">
+            <div class="head">SERIAL MONITOR &middot; 9600 BAUD</div>
+            <div id="serialLines"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="challenges">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Engineering Challenges</div>
+            <h2>Laboratory Extensions</h2>
+            <p class="lead">Apply hardware interrupts to real-world embedded sensor applications.</p>
+          </div>
+        </div>
+        <div class="three grid">
+          <div class="card challenge">
+            <h3>01 &middot; Optical Tachometer (RPM)</h3>
+            <p class="muted">Count wheel rotations with an optical slotted sensor to calculate motor RPM in real time.
+            </p><span class="tag">FORMULA: RPM = (pulses / PPR) &times; 60</span>
+          </div>
+          <div class="card challenge">
+            <h3>02 &middot; Quadrature Rotary Encoder</h3>
+            <p class="muted">Trigger an ISR on Channel A and read Channel B inside the handler to determine clockwise vs
+              CCW rotation.</p><span class="tag">LOGIC: dir = digitalRead(B) ? 1 : -1</span>
+          </div>
+          <div class="card challenge">
+            <h3>03 &middot; High-Precision Frequency Counter</h3>
+            <p class="muted">Measure incoming square wave frequencies from 1Hz to 50kHz using timer delta intervals.</p>
+            <span class="tag">TIMER: freq = 1000000.0 / deltaMicros</span>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Technical Summary</div>
+            <h2>Engineering Concept Mastery</h2>
+          </div>
+        </div>
+        <div class="card simple">
+          <p>Core Takeaway:</p>
+          <div class="callout"><b>&ldquo;Hardware interrupts bypass software polling loops entirely, trapping physical
+              electrical edges in nanoseconds. Declaring shared variables as volatile and keeping ISRs short guarantees
+              rock-solid real-time determinism.&rdquo;</b></div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer>
+    <div class="container footer">Arduino Hardware Lab &middot; Professional Engineering Notebook</div>
+  </footer>
+
+  <script>
+    const heroPulseBtn = document.getElementById('heroPulseBtn'), labPulseBtn = document.getElementById('labPulseBtn'), heroCounter = document.getElementById('heroCounter'), heroLed = document.getElementById('heroLed'), sentCount = document.getElementById('sentCount'), caughtCount = document.getElementById('caughtCount'), missedCount = document.getElementById('missedCount'), btnModeISR = document.getElementById('btnModeISR'), btnModePoll = document.getElementById('btnModePoll'), modeDesc = document.getElementById('modeDesc'), scopeStatus = document.getElementById('scopeStatus'), capStatus = document.getElementById('capStatus'), serialLines = document.getElementById('serialLines'), canvas = document.getElementById('isrChart'), ctx = canvas.getContext('2d');
+    let isISRMode = true, sent = 0, caught = 0, missed = 0, wave = Array(100).fill(1), pulseActive = false, pollingBusy = false;
+    function logSerial(msg) { let d = new Date(), ts = d.toTimeString().split(' ')[0] + '.' + String(d.getMilliseconds()).padStart(3, '0'); let line = document.createElement('div'); line.className = 'serialline'; line.innerHTML = `<span style="color:#7d8998">[${ts}]</span><span>${msg}</span>`; serialLines.prepend(line); while (serialLines.children.length > 8) serialLines.lastChild.remove() }
+    btnModeISR.addEventListener('click', () => { isISRMode = true; btnModeISR.className = 'btn primary'; btnModePoll.className = 'btn'; modeDesc.innerHTML = '<b>Running Hardware Interrupt (INT0):</b> Zero latency. Every single pulse is trapped instantly regardless of main loop load.'; scopeStatus.textContent = 'INT0 ARMED'; capStatus.textContent = 'INSTANTANEOUS'; capStatus.style.color = 'var(--green)' });
+    btnModePoll.addEventListener('click', () => { isISRMode = false; btnModePoll.className = 'btn primary'; btnModeISR.className = 'btn'; modeDesc.innerHTML = '<b>Running Software Polling (500ms Delay):</b> CPU is frozen executing tasks. Pulses fired during busy cycles will be permanently lost!'; scopeStatus.textContent = 'POLLING MODE'; capStatus.textContent = 'POTENTIAL LOSS'; capStatus.style.color = 'var(--red)' });
+    setInterval(() => { pollingBusy = !pollingBusy }, 500);
+    function firePulse() { sent++; sentCount.textContent = sent; pulseActive = true; let success = false; if (isISRMode) { success = true } else { success = !pollingBusy } if (success) { caught++; caughtCount.textContent = caught; heroCounter.textContent = caught; heroLed.classList.toggle('on'); logSerial(`[ISR Trigger] Caught! Total Events: ${caught}`) } else { missed++; missedCount.textContent = missed; logSerial(`<span style="color:#ff6b6b">[POLL FAIL] Pulse dropped while CPU in delay()!</span>`) } }
+    [heroPulseBtn, labPulseBtn].forEach(b => b.addEventListener('click', firePulse));
+    function drawScope() { let w = canvas.width, h = canvas.height; ctx.clearRect(0, 0, w, h); let v = pulseActive ? 0 : 1; pulseActive = false; wave.push(v); wave.shift(); ctx.strokeStyle = '#39d7ff'; ctx.lineWidth = 3; ctx.beginPath(); wave.forEach((val, i) => { let x = i / (wave.length - 1) * w, y = h * 0.75 - val * 110; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y) }); ctx.stroke(); ctx.fillStyle = 'rgba(57,215,255,0.1)'; ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.fill(); ctx.fillStyle = '#39d7ff'; ctx.font = '11px monospace'; ctx.fillText('INT0 PIN D2 VOLTAGE', 14, 35); requestAnimationFrame(drawScope) }
+    requestAnimationFrame(drawScope); logSerial("Hardware Interrupt system booted on pin D2.");
+    const basic = `/* Minimal Hardware Interrupt Service Routine */\n\nconst byte INTERRUPT_PIN = 2;\nconst byte LED_PIN = 13;\n\nvolatile bool ledState = false;\n\nvoid isrToggle() {\n  ledState = !ledState;\n  digitalWrite(LED_PIN, ledState);\n}\n\nvoid setup() {\n  pinMode(INTERRUPT_PIN, INPUT_PULLUP);\n  pinMode(LED_PIN, OUTPUT);\n  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), isrToggle, FALLING);\n}\n\nvoid loop() {\n  delay(1000);\n}`;
+    const full = `const byte INTERRUPT_PIN = 2;\nconst byte STATUS_LED = 13;\n\nvolatile unsigned long pulseCount = 0;\nvolatile bool newPulseFlag = false;\n\nvolatile unsigned long lastIsrMicros = 0;\nconst unsigned long DEBOUNCE_MICROS = 150000;\n\nvoid isrTrigger() {\n  unsigned long currentMicros = micros();\n  if (currentMicros - lastIsrMicros > DEBOUNCE_MICROS) {\n    pulseCount++;\n    newPulseFlag = true;\n    lastIsrMicros = currentMicros;\n  }\n}\n\nvoid setup() {\n  pinMode(INTERRUPT_PIN, INPUT_PULLUP);\n  pinMode(STATUS_LED, OUTPUT);\n  Serial.begin(9600);\n  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), isrTrigger, FALLING);\n  Serial.println(F("Hardware Interrupt active on Pin D2."));\n}\n\nvoid loop() {\n  delay(500);\n  if (newPulseFlag) {\n    noInterrupts();\n    unsigned long currentCount = pulseCount;\n    newPulseFlag = false;\n    interrupts();\n    Serial.print(F("Interrupt Caught! Total Events: "));\n    Serial.println(currentCount);\n    digitalWrite(STATUS_LED, !digitalRead(STATUS_LED));\n  }\n}`;
+    function copyText(t, b) { navigator.clipboard.writeText(t).then(() => { let old = b.textContent; b.textContent = 'Copied ✓'; setTimeout(() => b.textContent = old, 1200) }) }
+    function copyBasic() { copyText(basic, event.target) } function copyFull() { copyText(full, event.target) }
+  </script>
+</body>
+
+</html>

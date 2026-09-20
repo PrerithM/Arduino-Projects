@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Analog Input / Output — Arduino Hardware Lab</title>
+  <!-- Fonts & Icons matching main website -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg: #07090d;
+      --panel: #0d1118;
+      --panel2: #111722;
+      --line: #202938;
+      --text: #eef2f7;
+      --muted: #8c98a9;
+      --accent: #ff5a36;
+      --cyan: #39d7ff;
+      --green: #52e39b;
+      --yellow: #ffd166;
+      --purple: #c792ea;
+      --blue: #82aaff;
+      --red: #ff6b6b;
+      --shadow: 0 18px 60px #0007
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 70% 0%, #14202d 0, #07090d 34%), var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      line-height: 1.55
+    }
+
+    body:before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .11;
+      background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, black, transparent 75%)
+    }
+
+    .container {
+      width: min(1180px, calc(100% - 40px));
+      margin: auto
+    }
+
+    /* Floating Navbar matching Main Website */
+    .navbar-wrapper {
+      position: fixed;
+      top: 16px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      z-index: 100;
+      padding: 0 20px;
+    }
+
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1100px;
+      height: 64px;
+      padding: 0 18px;
+      border-radius: 9999px;
+      background: rgba(13, 15, 18, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .pulse-icon {
+      width: 26px;
+      height: 26px;
+      filter: drop-shadow(0 0 8px #35C98A);
+    }
+
+    .brand-text {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      font-family: 'Outfit', sans-serif;
+      color: #eef2f7;
+    }
+
+    .brand-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(53, 201, 138, 0.12);
+      color: #35C98A;
+      border: 1px solid rgba(53, 201, 138, 0.3);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-links {
+      display: flex;
+      list-style: none;
+      gap: 4px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 4px 6px;
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      margin: 0;
+    }
+
+    .nav-link {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #8c98a9;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .nav-link:hover {
+      color: #eef2f7;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-link.active {
+      color: #eef2f7;
+      background: rgba(255, 255, 255, 0.12);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--cyan);
+      background: rgba(57, 215, 255, 0.08);
+      border: 1px solid rgba(57, 215, 255, 0.25);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+
+    .nav-back-btn:hover {
+      background: rgba(57, 215, 255, 0.16);
+      border-color: rgba(57, 215, 255, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .btn-github-nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #eef2f7;
+      padding: 6px 15px;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .btn-github-nav:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 860px) {
+      .nav-links { display: none; }
+    }
+
+    .hero {
+      padding: 104px 0 62px;
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 54px;
+      align-items: center
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase
+    }
+
+    .hero h1 {
+      font-size: clamp(43px, 6vw, 75px);
+      line-height: .97;
+      letter-spacing: -.055em;
+      margin: 14px 0 20px
+    }
+
+    .hero p {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 650px
+    }
+
+    .buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 28px;
+      flex-wrap: wrap
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: #111722;
+      color: #fff;
+      padding: 12px 17px;
+      border-radius: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #090a0c
+    }
+
+    .btn:hover {
+      transform: translateY(-1px)
+    }
+
+    .hero-card,
+    .card {
+      background: rgba(13, 17, 24, .9);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: var(--shadow)
+    }
+
+    .arduino {
+      border: 1px solid #384352;
+      border-radius: 16px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden
+    }
+
+    .boardtop {
+      display: flex;
+      justify-content: space-between;
+      color: #9ca7b6;
+      font: 12px monospace
+    }
+
+    .board {
+      margin: 18px auto;
+      width: 88%;
+      height: 160px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #167c62, #0c5648);
+      border: 2px solid #2ba980;
+      position: relative
+    }
+
+    .chip {
+      position: absolute;
+      width: 100px;
+      height: 45px;
+      left: 50%;
+      top: 55px;
+      transform: translateX(-50%);
+      background: #15191f;
+      border: 1px solid #4b5664;
+      border-radius: 5px;
+      display: grid;
+      place-items: center;
+      font: 11px monospace;
+      color: #cdd5df
+    }
+
+    .pin {
+      position: absolute;
+      font: 10px monospace
+    }
+
+    .p5 {
+      left: 8px;
+      top: 10px
+    }
+
+    .a0 {
+      right: 8px;
+      top: 66px
+    }
+
+    .gnd {
+      left: 8px;
+      bottom: 10px
+    }
+
+    .potwrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 18px;
+      margin-top: 18px
+    }
+
+    .pot {
+      width: 130px;
+      height: 74px;
+      border-radius: 12px;
+      background: #1c222c;
+      border: 1px solid #485364;
+      position: relative
+    }
+
+    .knob {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #0b0e13;
+      border: 5px solid #626f80;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      transition: .12s
+    }
+
+    .knob:after {
+      content: "";
+      position: absolute;
+      width: 3px;
+      height: 20px;
+      background: var(--cyan);
+      left: 50%;
+      top: 3px;
+      transform: translateX(-50%);
+      border-radius: 2px
+    }
+
+    .wire {
+      height: 2px;
+      background: var(--cyan);
+      width: 65px;
+      box-shadow: 0 0 12px #39d7ffaa
+    }
+
+    section {
+      padding: 66px 0
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: end;
+      margin-bottom: 24px
+    }
+
+    h2 {
+      font-size: 34px;
+      letter-spacing: -.035em;
+      margin: 0 0 6px
+    }
+
+    .lead {
+      color: var(--muted);
+      max-width: 700px;
+      margin: 0
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px
+    }
+
+    .three {
+      grid-template-columns: repeat(3, 1fr)
+    }
+
+    .two {
+      grid-template-columns: repeat(2, 1fr)
+    }
+
+    .flow {
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .node {
+      flex: 1;
+      min-width: 160px;
+      padding: 18px;
+      background: #0b1017;
+      border: 1px solid var(--line);
+      border-radius: 14px
+    }
+
+    .arrow {
+      display: grid;
+      place-items: center;
+      color: var(--cyan);
+      font-size: 22px
+    }
+
+    .node p {
+      color: var(--muted);
+      font-size: 14px
+    }
+
+    .icon {
+      font-size: 28px
+    }
+
+    .simple {
+      font-size: 16px
+    }
+
+    .callout {
+      background: #101722;
+      border: 1px solid #2b394b;
+      border-left: 3px solid var(--cyan);
+      padding: 17px;
+      border-radius: 12px
+    }
+
+    .callout.orange {
+      border-left-color: var(--accent)
+    }
+
+    .callout.green {
+      border-left-color: var(--green)
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 13px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    th {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--muted)
+    }
+
+    td code {
+      color: var(--cyan)
+    }
+
+    .sim {
+      display: grid;
+      grid-template-columns: .8fr 1.2fr;
+      gap: 18px
+    }
+
+    .control {
+      background: #090d13;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px
+    }
+
+    .range {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer
+    }
+
+    .scale {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font: 12px monospace
+    }
+
+    .gauge {
+      height: 14px;
+      border-radius: 99px;
+      background: #151b25;
+      border: 1px solid var(--line);
+      overflow: hidden;
+      margin-top: 18px
+    }
+
+    .fill {
+      height: 100%;
+      width: 50%;
+      background: linear-gradient(90deg, var(--cyan), var(--accent));
+      transition: .12s
+    }
+
+    .readout {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 18px
+    }
+
+    .read {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #0c1118
+    }
+
+    .read span {
+      font: 11px monospace;
+      color: var(--muted)
+    }
+
+    .read b {
+      font-size: 23px;
+      display: block
+    }
+
+    .chart {
+      height: 280px;
+      background: repeating-linear-gradient(0deg, transparent 0 39px, #18202b 40px), repeating-linear-gradient(90deg, transparent 0 59px, #18202b 60px);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden
+    }
+
+    .chart canvas {
+      width: 100%;
+      height: 100%
+    }
+
+    .formula {
+      font-size: 22px;
+      background: #090d13;
+      border: 1px solid var(--line);
+      padding: 22px;
+      border-radius: 14px;
+      text-align: center
+    }
+
+    .formula b {
+      color: var(--cyan)
+    }
+
+    .code-layout {
+      display: grid;
+      grid-template-columns: 1.35fr .65fr;
+      gap: 16px
+    }
+
+    .code {
+      background: #080b10;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden
+    }
+
+    .codebar {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font: 12px monospace
+    }
+
+    .copy {
+      border: 1px solid #354052;
+      background: #141b25;
+      color: #dce5ee;
+      padding: 6px 9px;
+      border-radius: 7px;
+      cursor: pointer;
+      font: 12px monospace
+    }
+
+    .copy:hover {
+      border-color: var(--cyan)
+    }
+
+    .code pre {
+      margin: 0;
+      padding: 20px;
+      overflow: auto;
+      font-size: 13px;
+      line-height: 1.7;
+      max-height: 600px
+    }
+
+    .kw {
+      color: var(--purple)
+    }
+
+    .type {
+      color: var(--blue)
+    }
+
+    .fn {
+      color: var(--yellow)
+    }
+
+    .num {
+      color: #f78c6c
+    }
+
+    .str {
+      color: var(--green)
+    }
+
+    .comment {
+      color: #6f849b
+    }
+
+    .var {
+      color: #f8f8f2
+    }
+
+    .serial {
+      background: #05080c;
+      border: 1px solid #1e2835;
+      border-radius: 16px;
+      padding: 18px;
+      font: 12px monospace;
+      min-height: 280px;
+      color: #a9f0ce;
+      overflow: hidden
+    }
+
+    .serial .head {
+      color: #7d8998;
+      margin-bottom: 12px
+    }
+
+    .serialline {
+      display: grid;
+      grid-template-columns: 55px 75px 75px;
+      gap: 12px
+    }
+
+    .explain-list {
+      display: grid;
+      gap: 11px
+    }
+
+    .explain-row {
+      display: grid;
+      grid-template-columns: 35px 1fr;
+      gap: 11px
+    }
+
+    .explain-row .n {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #182232;
+      color: var(--cyan);
+      display: grid;
+      place-items: center;
+      font-weight: 800
+    }
+
+    .explain-row p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .challenge {
+      border-left: 3px solid var(--accent)
+    }
+
+    .tag {
+      display: inline-block;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 9px;
+      color: #b8c3d0;
+      font: 11px monospace
+    }
+
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 35px 0;
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    @media(max-width:850px) {
+
+      .hero,
+      .sim,
+      .two,
+      .three,
+      .code-layout {
+        grid-template-columns: 1fr
+      }
+
+      .links {
+        display: none
+      }
+
+      .readout {
+        grid-template-columns: 1fr
+      }
+
+      .hero {
+        padding-top: 55px
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Floating Island Header matching main website -->
+  <header class="navbar-wrapper">
+    <nav class="navbar">
+      <a href="../index.html" class="brand-logo">
+        <svg class="pulse-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 16H8L11 6L16 26L21 11L24 16H30" stroke="#35C98A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="brand-text">
+          <span class="brand-name">PRERITH.M</span>
+          <span class="brand-badge">HW LAB</span>
+        </div>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#idea" class="nav-link">Architecture</a></li>
+        <li><a href="#simulator" class="nav-link active">Simulator</a></li>
+        <li><a href="#circuit" class="nav-link">Circuit</a></li>
+        <li><a href="#code" class="nav-link">Code</a></li>
+        <li><a href="#challenges" class="nav-link">Challenges</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="../index.html" class="nav-back-btn">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>Main Lab</span>
+        </a>
+        <a href="https://github.com/PrerithM/Arduino-Projects/tree/main/01-Fundamentals/Analog-IO" target="_blank" rel="noopener noreferrer" class="btn-github-nav">
+          <i class="fa-brands fa-github"></i>
+          <span>GitHub</span>
+          <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.65rem; opacity: 0.7;"></i>
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <div class="container">
+      <section class="hero">
+        <div>
+          <div class="eyebrow">01 · Fundamentals &middot; Analog I/O</div>
+          <h1>Analog Input / Output</h1>
+          <p>Sample continuous physical voltage and quantize it with Arduino's 10-bit Analog-to-Digital Converter.
+            Includes real-time moving average noise filtration.</p>
+          <div class="buttons"><a class="btn primary" href="#simulator">Try the simulator</a><a class="btn"
+              href="#code">Open the code</a></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:22px"><span
+              class="tag">ANALOG-TO-DIGITAL</span><span class="tag">ATMEGA328P</span><span class="tag">10-BIT
+              ADC</span><span class="tag">MOVING AVERAGE</span><span class="tag">PIN A0</span></div>
+        </div>
+        <div class="hero-card">
+          <div class="arduino">
+            <div class="boardtop"><span>ARDUINO UNO R3</span><span>ADC VOLTAGE SAMPLER</span></div>
+            <div class="board"><span class="pin p5">5V</span><span class="pin a0">A0</span><span
+                class="pin gnd">GND</span>
+              <div class="chip">ATmega328P</div>
+            </div>
+            <div class="potwrap">
+              <div class="wire"></div>
+              <div class="pot">
+                <div class="knob" id="heroKnob"></div>
+              </div>
+              <div class="wire"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:10px;color:#8d99a8;font:11px monospace">
+              <span>0.00V</span><span id="heroVoltage">2.50V</span><span>5.00V</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="idea">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Core Architecture</div>
+            <h2>The Physical Signal Model</h2>
+            <p class="lead">A potentiometer functions as an adjustable resistive voltage divider. Rotating the shaft
+              sweeps the wiper contact across a resistive track to scale output potential.</p>
+          </div>
+        </div>
+        <div class="three grid">
+          <div class="card">
+            <div class="icon">🎛️</div>
+            <h3>Resistive Divider</h3>
+            <p class="simple muted">Dividing 5V across a 10kΩ carbon track yields a continuous analog output voltage
+              between 0.00V and 5.00V on the center wiper pin.</p>
+          </div>
+          <div class="card">
+            <div class="icon">⚡</div>
+            <h3>Analog Pin A0</h3>
+            <p class="simple muted">Multiplexed directly into the internal Successive Approximation Register (SAR) ADC
+              channel of the ATmega328P.</p>
+          </div>
+          <div class="card">
+            <div class="icon">🔢</div>
+            <h3>10-Bit Quantization</h3>
+            <p class="simple muted">Transforms the incoming 0V–5V continuous potential into discrete integers from 0 to
+              1023 (1024 distinct voltage steps).</p>
+          </div>
+        </div>
+        <div class="callout" style="margin-top:16px"><b>Signal Processing Chain:</b> Mechanical Rotation → Variable
+          Resistance → Scaled Voltage (0–5V) → 10-Bit ADC Conversion (0–1023) → Moving Average Filter → Serial
+          Telemetry.</div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Signal Pipeline</div>
+            <h2>Conversion Pipeline Step by Step</h2>
+          </div>
+        </div>
+        <div class="flow">
+          <div class="node"><b>1 · Wiper Displacement</b>
+            <p>Rotating the dial adjusts the ratio R1:R2 across the 10kΩ element.</p>
+          </div>
+          <div class="arrow">→</div>
+          <div class="node"><b>2 · A0 Sample & Hold</b>
+            <p>Input capacitor charges to match the instantaneous pin voltage.</p>
+          </div>
+          <div class="arrow">→</div>
+          <div class="node"><b>3 · SAR Quantization</b>
+            <p>Successive binary search computes integer value (0 to 1023) in ~100µs.</p>
+          </div>
+          <div class="arrow">→</div>
+          <div class="node"><b>4 · Rolling Smoothing</b>
+            <p>A circular 10-sample FIFO buffer filters high-frequency thermal noise.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="circuit">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Hardware Schematic</div>
+            <h2>Wiring & Pin Architecture</h2>
+            <p class="lead">Connect the three potentiometer terminals directly to the Arduino Uno header pins.</p>
+          </div>
+        </div>
+        <div class="two">
+          <div class="card">
+            <table>
+              <tr>
+                <th>Arduino Pin</th>
+                <th>Potentiometer Terminal</th>
+                <th>Functional Purpose</th>
+              </tr>
+              <tr>
+                <td><code>5V</code></td>
+                <td>Outer Leg (Pin 1)</td>
+                <td>+5V Reference Supply</td>
+              </tr>
+              <tr>
+                <td><code>A0</code></td>
+                <td>Center Wiper (Pin 2)</td>
+                <td>Variable Potential Input</td>
+              </tr>
+              <tr>
+                <td><code>GND</code></td>
+                <td>Opposite Leg (Pin 3)</td>
+                <td>System Common Ground</td>
+              </tr>
+            </table>
+          </div>
+          <div class="card">
+            <h3>⚡ Engineering Notes</h3>
+            <p><span class="tag">VREF = 5.0V</span> By default, Arduino compares against the VCC rail.</p>
+            <p><span class="tag">RESOLUTION</span> 5.0V / 1024 ≈ 4.88mV per ADC step.</p>
+            <p><span class="tag">IMPEDANCE</span> Output impedance &lt; 10kΩ ensures accurate internal sampling.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="simulator">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Interactive Lab</div>
+            <h2>Live ADC & Voltage Telemetry</h2>
+            <p class="lead">Adjust the potentiometer dial to inspect raw quantized levels, calculated voltage, and the
+              live waveform graph.</p>
+          </div>
+        </div>
+        <div class="sim">
+          <div class="control">
+            <h3>🎛️ Potentiometer Position</h3><input id="slider" class="range" type="range" min="0" max="1023"
+              value="512">
+            <div class="scale"><span>0V (0)</span><span>2.5V (512)</span><span>5V (1023)</span></div>
+            <div class="gauge">
+              <div id="fill" class="fill"></div>
+            </div>
+            <div class="readout">
+              <div class="read"><span>RAW ADC</span><b id="raw">512</b></div>
+              <div class="read"><span>CALCULATED VOLTS</span><b id="voltage">2.50 V</b></div>
+              <div class="read"><span>NORMALIZED</span><b id="percent">50%</b></div>
+            </div>
+            <div class="callout orange" style="margin-top:17px"><b>Observation:</b> Notice how linear adjustment maps
+              directly from 0.00V at ground reference to 5.00V at full scale.</div>
+          </div>
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <h3 style="margin:0">Live Signal Oscillogram</h3><span class="tag">LIVE CAPTURE</span>
+            </div>
+            <div class="chart"><canvas id="chart" width="900" height="280"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Mathematical Theory</div>
+            <h2>ADC Quantization Mathematics</h2>
+            <p class="lead">How the microcontroller converts analog voltage into digital registers.</p>
+          </div>
+        </div>
+        <div class="two">
+          <div class="card simple">
+            <p>The ATmega328P integrates an internal <b>10-bit successive-approximation ADC</b>:</p>
+            <div style="font-size:36px;font-weight:850">2¹⁰ = 1024 States</div>
+            <p>Quantization bins span sequentially from <b>0 to 1023</b>.</p>
+            <div style="display:flex;justify-content:space-between;font-family:monospace;color:var(--muted)"><span>0
+                (0.000V)</span><span>512 (2.502V)</span><span>1023 (4.995V)</span></div>
+          </div>
+          <div class="card">
+            <div class="formula">V<sub>in</sub> = <b>(ADC<sub>val</sub> &times; V<sub>ref</sub>) / 1023.0</b></div>
+            <p class="muted">Example at mid-scale (512):</p>
+            <div style="font-size:20px;text-align:center;font-weight:800">512 &times; 5.0V / 1023.0 &approx; 2.502 V
+            </div>
+            <p class="muted">Yielding an effective quantization granularity of 4.887 mV per count.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Digital Signal Processing</div>
+            <h2>Moving Average Noise Filtering</h2>
+            <p class="lead">Raw breadboard circuits pick up ambient electromagnetic interference (EMI). A circular
+              10-sample rolling buffer stabilizes telemetry without lag.</p>
+          </div>
+        </div>
+        <div class="two">
+          <div class="card">
+            <h3>Unfiltered Raw Stream (Noisy)</h3>
+            <div class="chart" style="height:230px"><canvas id="rawChart" width="900" height="230"></canvas></div>
+            <p class="muted">High-frequency noise causes rapid bit-toggling on the least significant bits (LSB).</p>
+          </div>
+          <div class="card">
+            <h3>10-Sample Moving Average (Smoothed)</h3>
+            <div class="chart" style="height:230px"><canvas id="smoothChart" width="900" height="230"></canvas></div>
+            <p class="muted">Running sum divided by sample count eliminates thermal jitter.</p>
+          </div>
+        </div>
+        <div class="callout green" style="margin-top:16px"><b>Algorithmic Advantage:</b> Subtracting the oldest item
+          from running sum and adding the newest sample operates in constant O(1) execution time without loop overhead.
+        </div>
+      </section>
+
+      <section id="code">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Firmware Laboratory</div>
+            <h2>Microcontroller Firmware Implementation</h2>
+            <p class="lead">From minimal sampling to production-grade filtered stream.</p>
+          </div>
+        </div>
+        <div class="code-layout">
+          <div class="code">
+            <div class="codebar"><span>analog_basic.ino</span><button class="copy" onclick="copyBasic()">Copy
+                code</button></div>
+            <pre id="basicCode"><span class="comment">/* Read an analog input and compute real-world voltage */</span>
+
+<span class="kw">const</span> <span class="type">int</span> ANALOG_PIN = A0;
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  Serial.<span class="fn">begin</span>(<span class="num">9600</span>);
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="comment">// Query 10-bit Successive Approximation ADC</span>
+  <span class="type">int</span> rawValue = <span class="fn">analogRead</span>(ANALOG_PIN);
+
+  <span class="comment">// Scale discrete counts (0-1023) to floating-point voltage (0-5V)</span>
+  <span class="type">float</span> voltage = (rawValue * <span class="num">5.0</span>) / <span class="num">1023.0</span>;
+
+  <span class="comment">// Transmit telemetry over UART</span>
+  Serial.<span class="fn">print</span>(<span class="str">"Raw: "</span>);
+  Serial.<span class="fn">print</span>(rawValue);
+  Serial.<span class="fn">print</span>(<span class="str">"  Voltage: "</span>);
+  Serial.<span class="fn">print</span>(voltage, <span class="num">2</span>);
+  Serial.<span class="fn">println</span>(<span class="str">" V"</span>);
+
+  <span class="fn">delay</span>(<span class="num">100</span>);
+}</pre>
+          </div>
+          <div class="card">
+            <h3>🔎 Register & API Analysis</h3>
+            <div class="explain-list">
+              <div class="explain-row">
+                <div class="n">1</div>
+                <div><b><code>analogRead(A0)</code></b>
+                  <p>Selects multiplexer channel MUX0, begins conversion, and waits ~104 microseconds for completion.
+                  </p>
+                </div>
+              </div>
+              <div class="explain-row">
+                <div class="n">2</div>
+                <div><b><code>ADMUX / ADCSRA</code></b>
+                  <p>Hardware registers governing prescaler (128 = 125kHz ADC clock) and reference voltage selection.
+                  </p>
+                </div>
+              </div>
+              <div class="explain-row">
+                <div class="n">3</div>
+                <div><b><code>Linear Interpolation</code></b>
+                  <p>Mapping raw counts to floating-point values maintains full 10-bit decimal accuracy.</p>
+                </div>
+              </div>
+              <div class="explain-row">
+                <div class="n">4</div>
+                <div><b><code>Serial.print()</code></b>
+                  <p>Transmits ASCII-encoded telemetry characters to the host machine over UART.</p>
+                </div>
+              </div>
+              <div class="explain-row">
+                <div class="n">5</div>
+                <div><b><code>100ms Cadence</code></b>
+                  <p>Samples at 10Hz, preventing serial buffer saturation while tracking physical knob motion.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:18px" class="two">
+          <div class="code">
+            <div class="codebar"><span>analog_io.ino &middot; production moving average</span><button class="copy"
+                onclick="copyFull()">Copy full code</button></div>
+            <pre id="fullCode"><span class="comment">/*
+ * Module: Analog I/O &amp; Continuous Voltage Measurement
+ * 10-reading circular moving average noise filter.
+ */</span>
+
+<span class="kw">const</span> <span class="type">int</span> ANALOG_PIN = A0;
+<span class="kw">const</span> <span class="type">int</span> NUM_READINGS = <span class="num">10</span>;
+
+<span class="type">int</span> readings[NUM_READINGS];
+<span class="type">int</span> readIndex = <span class="num">0</span>;
+<span class="type">long</span> total = <span class="num">0</span>;
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  Serial.<span class="fn">begin</span>(<span class="num">9600</span>);
+  <span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i &lt; NUM_READINGS; i++) {
+    readings[i] = <span class="num">0</span>;
+  }
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="comment">// Subtract oldest sample from running accumulator</span>
+  total = total - readings[readIndex];
+
+  <span class="comment">// Sample new instantaneous reading</span>
+  readings[readIndex] = <span class="fn">analogRead</span>(ANALOG_PIN);
+
+  <span class="comment">// Accumulate new sample</span>
+  total = total + readings[readIndex];
+
+  <span class="comment">// Advance circular buffer index</span>
+  readIndex = (readIndex + <span class="num">1</span>) % NUM_READINGS;
+
+  <span class="comment">// Calculate filtered average</span>
+  <span class="type">int</span> averageRaw = total / NUM_READINGS;
+  <span class="type">float</span> voltage = (averageRaw * <span class="num">5.0</span>) / <span class="num">1023.0</span>;
+  <span class="type">int</span> percentage = <span class="fn">map</span>(averageRaw, <span class="num">0</span>, <span class="num">1023</span>, <span class="num">0</span>, <span class="num">100</span>);
+
+  Serial.<span class="fn">print</span>(averageRaw);
+  Serial.<span class="fn">print</span>(<span class="str">"\t"</span>);
+  Serial.<span class="fn">print</span>(voltage, <span class="num">2</span>);
+  Serial.<span class="fn">print</span>(<span class="str">" V\t"</span>);
+  Serial.<span class="fn">print</span>(percentage);
+  Serial.<span class="fn">println</span>(<span class="str">"%"</span>);
+
+  <span class="fn">delay</span>(<span class="num">100</span>);
+}</pre>
+          </div>
+          <div class="serial">
+            <div class="head">SERIAL MONITOR &middot; 9600 BAUD</div>
+            <div style="color:#8793a2;margin-bottom:8px">Raw&nbsp;&nbsp;&nbsp; Voltage&nbsp;&nbsp; Percent</div>
+            <div id="serialLines"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="challenges">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Engineering Challenges</div>
+            <h2>Laboratory Extensions</h2>
+            <p class="lead">Reinforce your understanding of analog signal processing with these hardware challenges.</p>
+          </div>
+        </div>
+        <div class="three grid">
+          <div class="card challenge">
+            <h3>01 &middot; Voltage Comparator Alarm</h3>
+            <p class="muted">Trigger a physical LED or buzzer alarm whenever sampled potential exceeds <b>3.80V</b>.</p>
+            <span class="tag">LOGIC: if (voltage &gt; 3.8)</span>
+          </div>
+          <div class="card challenge">
+            <h3>02 &middot; Logarithmic Audio Fader</h3>
+            <p class="muted">Convert the linear ADC reading into a decibel volume curve using an exponential power
+              function.</p><span class="tag">ALGO: pow(ratio, 2.0)</span>
+          </div>
+          <div class="card challenge">
+            <h3>03 &middot; Servo Closed-Loop Joint</h3>
+            <p class="muted">Use the 0–1023 analog range to command an SG90 servo motor through its full 0&deg;–180&deg;
+              mechanical sweep.</p><span class="tag">MAP: map(raw, 0, 1023, 0, 180)</span>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Technical Summary</div>
+            <h2>Engineering Concept Mastery</h2>
+          </div>
+        </div>
+        <div class="card simple">
+          <p>Core Takeaway:</p>
+          <div class="callout"><b>&ldquo;A potentiometer provides a variable resistive potential divider. The ATmega328P
+              successive approximation ADC samples this continuous voltage (0–5V) and quantizes it into 1024 discrete
+              integer counts (0–1023), which firmware maps into physical units.&rdquo;</b></div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer>
+    <div class="container footer">Arduino Hardware Lab &middot; Professional Engineering Notebook</div>
+  </footer>
+
+  <script>
+    const slider = document.getElementById('slider'), raw = document.getElementById('raw'), voltage = document.getElementById('voltage'), percent = document.getElementById('percent'), fill = document.getElementById('fill'), heroKnob = document.getElementById('heroKnob'), heroVoltage = document.getElementById('heroVoltage'), chart = document.getElementById('chart'), ctx = chart.getContext('2d'); let history = Array(80).fill(512), rawHistory = [], smoothHistory = [];
+    function draw(c, data, color) { let w = c.canvas.width, h = c.canvas.height; c.clearRect(0, 0, w, h); c.strokeStyle = color; c.lineWidth = 3; c.beginPath(); data.forEach((v, i) => { let x = i / (data.length - 1) * w, y = h - (v / 1023) * h * .86 - h * .07; i ? c.lineTo(x, y) : c.moveTo(x, y) }); c.stroke() }
+    function update() { let x = +slider.value, v = x * 5 / 1023, p = Math.round(x / 1023 * 100); raw.textContent = x; voltage.textContent = v.toFixed(2) + ' V'; percent.textContent = p + '%'; fill.style.width = p + '%'; heroKnob.style.transform = `translate(-50%,-50%) rotate(${(p - 50) * 2.4}deg)`; heroVoltage.textContent = v.toFixed(2) + 'V'; history.push(x); history.shift(); draw(ctx, history, '#39d7ff') }
+    slider.addEventListener('input', update); update();
+    setInterval(() => { let x = +slider.value, n = Math.max(0, Math.min(1023, x + (Math.random() - .5) * 85)); rawHistory.push(n); if (rawHistory.length > 70) rawHistory.shift(); let avg = rawHistory.slice(-10).reduce((a, b) => a + b, 0) / Math.min(10, rawHistory.length); smoothHistory.push(avg); if (smoothHistory.length > 70) smoothHistory.shift(); draw(document.getElementById('rawChart').getContext('2d'), rawHistory, '#ff6b55'); draw(document.getElementById('smoothChart').getContext('2d'), smoothHistory, '#52e39b'); let r = +slider.value, v = r * 5 / 1023, p = Math.round(r / 1023 * 100); let line = document.createElement('div'); line.className = 'serialline'; line.innerHTML = `<span>${r}</span><span>${v.toFixed(2)} V</span><span>${p}%</span>`; document.getElementById('serialLines').prepend(line); while (document.getElementById('serialLines').children.length > 7) document.getElementById('serialLines').lastChild.remove() }, 120);
+
+    const basic = `/* Read an analog input and compute real-world voltage */\n\nconst int ANALOG_PIN = A0;\n\nvoid setup() {\n  Serial.begin(9600);\n}\n\nvoid loop() {\n  int rawValue = analogRead(ANALOG_PIN);\n  float voltage = (rawValue * 5.0) / 1023.0;\n\n  Serial.print("Raw: ");\n  Serial.print(rawValue);\n  Serial.print("  Voltage: ");\n  Serial.print(voltage, 2);\n  Serial.println(" V");\n\n  delay(100);\n}`;
+    const full = `const int ANALOG_PIN = A0;\nconst int NUM_READINGS = 10;\n\nint readings[NUM_READINGS];\nint readIndex = 0;\nlong total = 0;\n\nvoid setup() {\n  Serial.begin(9600);\n  for (int i = 0; i < NUM_READINGS; i++) {\n    readings[i] = 0;\n  }\n}\n\nvoid loop() {\n  total = total - readings[readIndex];\n  readings[readIndex] = analogRead(ANALOG_PIN);\n  total = total + readings[readIndex];\n  readIndex = (readIndex + 1) % NUM_READINGS;\n\n  int averageRaw = total / NUM_READINGS;\n  float voltage = (averageRaw * 5.0) / 1023.0;\n  int percentage = map(averageRaw, 0, 1023, 0, 100);\n\n  Serial.print(averageRaw);\n  Serial.print("\\t");\n  Serial.print(voltage, 2);\n  Serial.print(" V\\t");\n  Serial.print(percentage);\n  Serial.println("%");\n\n  delay(100);\n}`;
+    function copyText(t, b) { navigator.clipboard.writeText(t).then(() => { let old = b.textContent; b.textContent = 'Copied ✓'; setTimeout(() => b.textContent = old, 1200) }) }
+    function copyBasic() { copyText(basic, event.target) } function copyFull() { copyText(full, event.target) }
+  </script>
+</body>
+
+</html>

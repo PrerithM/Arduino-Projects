@@ -213,6 +213,7 @@ void loop() {
   }
 }`,
     githubPath: "01-Fundamentals/Digital-IO",
+    interactiveLabUrl: "fundamentals/digital-io.html",
     lessons: [
       "Never connect an LED directly to 5V without a current-limiting resistor (V = IR).",
       "Using INPUT_PULLUP activates the internal 20kΩ resistor, eliminating floating pins without extra breadboard parts.",
@@ -230,6 +231,7 @@ void loop() {
     platform: "Arduino UNO",
     language: "C++",
     status: "COMPLETED",
+    interactiveLabUrl: "fundamentals/analog-io.html",
     summary: "Reading continuous analog voltage potentials with 10-bit Successive Approximation ADC.",
     problem: "Converting physical continuous voltages into discrete numerical quantities for software processing.",
     idea: "Sample A0 using internal 10-bit ADC, mapping 0.0V–5.0V input into 0–1023 integer quantization bins.",
@@ -280,6 +282,7 @@ void loop() {
     platform: "Arduino UNO",
     language: "C++",
     status: "COMPLETED",
+    interactiveLabUrl: "fundamentals/pwm.html",
     summary: "Simulating analog voltages by high-frequency square wave duty-cycle switching (~490Hz / 980Hz).",
     problem: "Digital pins can only output 0V or 5V. How do we dim an LED or vary motor speed smoothly?",
     idea: "Rapidly toggle the pin between 0V and 5V so fast that human persistence of vision / motor inertia averages the energy.",
@@ -325,6 +328,7 @@ void loop() {
     platform: "Arduino UNO",
     language: "C++",
     status: "COMPLETED",
+    interactiveLabUrl: "fundamentals/interrupts.html",
     summary: "Sub-microsecond edge-triggered event handling with AVR Interrupt Service Routines (ISRs).",
     problem: "Polling digital pins in a loop misses rapid momentary pulses from optical tachometers or rotary encoders.",
     idea: "Attach hardware INT0 / INT1 to vector execution directly to an ISR on RISING or FALLING electrical transitions.",
@@ -373,6 +377,170 @@ void loop() {
       "Atomic reading is required when accessing multi-byte variables on an 8-bit MCU."
     ],
     tags: ["Basic", "Interrupts", "Rotary-Encoder", "Assembly"]
+  },
+  {
+    id: "exp-timers",
+    num: "PROJECT 011",
+    title: "Non-Blocking Cooperative Timers & Multitasking",
+    category: "basic",
+    difficulty: "intermediate",
+    year: "2024",
+    platform: "Arduino UNO",
+    language: "C++",
+    status: "COMPLETED",
+    interactiveLabUrl: "fundamentals/timers.html",
+    summary: "Asynchronous task scheduler executing concurrent LED cadences and telemetry without delay() deadlocks.",
+    problem: "Using delay() freezes the single-core AVR CPU, blocking sensor inputs, emergency halts, and communication buses.",
+    idea: "Implement state machines driven by timestamp differentials (millis() - previousMillis >= interval) to interleave tasks cooperatively.",
+    flow: ["HARDWARE TIMER0", "MILLIS() COUNTER", "DELTA EVALUATION", "TASK DISPATCH", "ZERO BLOCKING"],
+    components: [
+      { name: "Arduino Uno", role: "Cooperative task scheduler" },
+      { name: "Fast Flash LED (Pin 11)", role: "High-frequency task visualizer (4Hz)" },
+      { name: "Slow Pulse LED (Pin 12)", role: "Low-frequency beacon visualizer (1Hz)" },
+      { name: "2x 220Ω Resistors", role: "Current limiters" }
+    ],
+    pinout: [
+      { mcu: "D11", comp: "Fast LED Anode", desc: "via 220Ω resistor (4Hz / 250ms cadence)" },
+      { mcu: "D12", comp: "Slow LED Anode", desc: "via 220Ω resistor (1Hz / 1000ms cadence)" },
+      { mcu: "GND", comp: "Cathodes (-)", desc: "Common ground rail" }
+    ],
+    code: `struct TaskTimer {
+  unsigned long previousMillis;
+  unsigned long interval;
+};
+
+TaskTimer taskFast  = {0, 250};   // 4Hz toggle (250ms)
+TaskTimer taskSlow  = {0, 1000};  // 1Hz toggle (1000ms)
+TaskTimer taskTelemetry = {0, 2000}; // Report every 2s
+
+const int PIN_FAST = 11;
+const int PIN_SLOW = 12;
+
+bool stateFast = false;
+bool stateSlow = false;
+
+void setup() {
+  pinMode(PIN_FAST, OUTPUT);
+  pinMode(PIN_SLOW, OUTPUT);
+  Serial.begin(9600);
+  Serial.println(F("Cooperative Multitasking Engine Started."));
+}
+
+void loop() {
+  unsigned long now = millis();
+
+  // Task 1: Fast Flash
+  if (now - taskFast.previousMillis >= taskFast.interval) {
+    taskFast.previousMillis = now;
+    stateFast = !stateFast;
+    digitalWrite(PIN_FAST, stateFast);
+  }
+
+  // Task 2: Slow Flash
+  if (now - taskSlow.previousMillis >= taskSlow.interval) {
+    taskSlow.previousMillis = now;
+    stateSlow = !stateSlow;
+    digitalWrite(PIN_SLOW, stateSlow);
+  }
+
+  // Task 3: Telemetry Stream
+  if (now - taskTelemetry.previousMillis >= taskTelemetry.interval) {
+    taskTelemetry.previousMillis = now;
+    Serial.print(F("[UPTIME] "));
+    Serial.print(now / 1000);
+    Serial.print(F("s | Fast LED: "));
+    Serial.print(stateFast ? "ON" : "OFF");
+    Serial.print(F(" | Slow LED: "));
+    Serial.println(stateSlow ? "ON" : "OFF");
+  }
+}`,
+    githubPath: "01-Fundamentals/Timers",
+    lessons: [
+      "Subtractions with unsigned long (now - previous >= interval) are rollover-safe across the 49.7 day millis() reset.",
+      "Hardware Timer0 continuously drives millis() and micros() via the TIMER0_OVF vector.",
+      "Struct-based task descriptors scale seamlessly to dozens of independent concurrent state machines."
+    ],
+    tags: ["Basic", "Timers", "Multitasking", "millis", "Fundamentals"]
+  },
+  {
+    id: "exp-serial-comm",
+    num: "PROJECT 012",
+    title: "UART Serial Communication & Command Line Interface",
+    category: "basic",
+    difficulty: "beginner",
+    year: "2024",
+    platform: "Arduino UNO",
+    language: "C++",
+    status: "COMPLETED",
+    interactiveLabUrl: "fundamentals/serial-communication.html",
+    summary: "Bidirectional asynchronous serial protocol parsing multi-character commands and streaming telemetry at 115200 baud.",
+    problem: "Real-time systems need human-machine communication to inspect registers, tune parameters, and trigger diagnostics remotely.",
+    idea: "Use hardware UART ring buffers with newline delimiter parsing to create an interactive command interpreter.",
+    flow: ["PC TERMINAL", "USB-UART BRIDGE", "AVR HARDWARE FIFO", "STRING PARSER", "ACTUATOR DISPATCH"],
+    components: [
+      { name: "Arduino Uno", role: "Hardware USART peripheral" },
+      { name: "ATmega16U2 / CH340", role: "USB-to-Serial TTL Bridge" },
+      { name: "Onboard LED (Pin 13)", role: "Remote controlled actuator" },
+      { name: "Analog Potentiometer (A0)", role: "Telemetry sensor channel" }
+    ],
+    pinout: [
+      { mcu: "D0 (RX)", comp: "USB Bridge TX", desc: "Incoming serial data stream" },
+      { mcu: "D1 (TX)", comp: "USB Bridge RX", desc: "Outgoing serial telemetry stream" },
+      { mcu: "D13", comp: "Status LED", desc: "CLI-controlled output" },
+      { mcu: "A0", comp: "Analog In", desc: "Telemetry query input" }
+    ],
+    code: `const int STATUS_LED = 13;
+String inputString = "";
+bool stringComplete = false;
+
+void setup() {
+  pinMode(STATUS_LED, OUTPUT);
+  Serial.begin(115200);
+  inputString.reserve(64);
+  Serial.println(F("ARDUINO CLI ENGINE READY. Commands: LED ON, LED OFF, READ A0, PING"));
+}
+
+void loop() {
+  if (stringComplete) {
+    inputString.trim();
+    if (inputString.equalsIgnoreCase("LED ON")) {
+      digitalWrite(STATUS_LED, HIGH);
+      Serial.println(F("OK: LED set to HIGH"));
+    } else if (inputString.equalsIgnoreCase("LED OFF")) {
+      digitalWrite(STATUS_LED, LOW);
+      Serial.println(F("OK: LED set to LOW"));
+    } else if (inputString.equalsIgnoreCase("READ A0")) {
+      int val = analogRead(A0);
+      Serial.print(F("ANALOG A0: "));
+      Serial.println(val);
+    } else if (inputString.equalsIgnoreCase("PING")) {
+      Serial.println(F("PONG"));
+    } else {
+      Serial.print(F("ERR: Unknown command '"));
+      Serial.print(inputString);
+      Serial.println(F("'"));
+    }
+    inputString = "";
+    stringComplete = false;
+  }
+}
+
+void serialEvent() {
+  while (Serial.available()) {
+    char inChar = (char)Serial.read();
+    inputString += inChar;
+    if (inChar == '\\n') {
+      stringComplete = true;
+    }
+  }
+}`,
+    githubPath: "01-Fundamentals/Serial-Communication",
+    lessons: [
+      "Baud rates between the microcontroller and PC terminal must match identically, or garbled characters will result.",
+      "Hardware UART uses a 64-byte circular FIFO buffer; long delays in loop() will cause buffer overflow and dropped bytes.",
+      "For memory-constrained microcontrollers, char buffers (C-strings) avoid heap fragmentation common with String objects."
+    ],
+    tags: ["Basic", "Serial", "UART", "CLI", "Fundamentals"]
   },
   {
     id: "exp-servo",
@@ -1152,11 +1320,16 @@ function initProjectGallery() {
       return;
     }
 
-    container.innerHTML = filtered.map(exp => `
-      <article class="glass-panel experiment-card" onclick="openExperimentModal('${exp.id}')">
+    container.innerHTML = filtered.map(exp => {
+      const hasLab = !!exp.interactiveLabUrl;
+      return `
+      <article class="glass-panel experiment-card ${hasLab ? 'has-interactive-lab' : ''}" onclick="handleCardClick(event, '${exp.id}', '${exp.interactiveLabUrl || ''}')">
         <div class="card-top-meta">
           <span class="exp-number">${exp.num}</span>
-          <span class="exp-difficulty ${exp.difficulty}">${exp.difficulty}</span>
+          <div style="display: flex; gap: 6px; align-items: center;">
+            ${hasLab ? `<span class="lab-pill-badge" title="Live Interactive Simulator Available"><i class="fa-solid fa-bolt"></i> Lab ↗</span>` : ''}
+            <span class="exp-difficulty ${exp.difficulty}">${exp.difficulty}</span>
+          </div>
         </div>
 
         <div>
@@ -1176,13 +1349,18 @@ function initProjectGallery() {
           <div class="card-tags">
             ${exp.tags.slice(0, 3).map(t => `<span class="card-tag-pill">${t}</span>`).join('')}
           </div>
-          <span class="view-link">
-            <span>Inspect</span>
-            <i class="fa-solid fa-arrow-right"></i>
-          </span>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button class="inspect-specs-btn" onclick="event.stopPropagation(); openExperimentModal('${exp.id}')" title="Inspect schematic, pinout, and source code">
+              <i class="fa-solid fa-file-code"></i> Specs
+            </button>
+            <span class="view-link">
+              <span>${hasLab ? 'Open Lab' : 'Inspect'}</span>
+              <i class="fa-solid ${hasLab ? 'fa-arrow-up-right-from-square' : 'fa-arrow-right'}"></i>
+            </span>
+          </div>
         </div>
       </article>
-    `).join('');
+    `}).join('');
   }
 
   filterTabs.forEach(tab => {
@@ -1222,6 +1400,15 @@ function initProjectGallery() {
 
   render();
 }
+
+// Global card click handler: opens interactive lab in new tab if available, or opens inspector modal
+window.handleCardClick = function (event, id, labUrl) {
+  if (labUrl) {
+    window.open(labUrl, '_blank');
+  } else {
+    openExperimentModal(id);
+  }
+};
 
 // ==========================================================================
 // 4. TECHNOLOGY STACK MAP INTERACTIVITY
@@ -1292,6 +1479,25 @@ window.openExperimentModal = function (id) {
     <h2 class="modal-project-title">${exp.title}</h2>
     <p class="modal-project-summary">${exp.summary}</p>
 
+    ${exp.interactiveLabUrl ? `
+      <div class="modal-interactive-banner" style="display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, rgba(255, 90, 54, 0.14), rgba(57, 215, 255, 0.08)); border: 1px solid rgba(255, 90, 54, 0.35); border-radius: var(--radius-md); padding: 14px 18px; margin: 16px 0 24px; gap: 16px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 38px; height: 38px; border-radius: 50%; background: rgba(255, 90, 54, 0.2); display: flex; align-items: center; justify-content: center; color: #ff7253; flex-shrink: 0;">
+            <i class="fa-solid fa-flask-vial" style="font-size: 1.1rem;"></i>
+          </div>
+          <div>
+            <div style="color: var(--text-primary); font-weight: 600; font-size: 0.95rem;">Interactive Simulator Available</div>
+            <div style="color: var(--text-muted); font-size: 0.8rem;">Explore real-time signal graphs, circuit dials, and interactive virtual hardware.</div>
+          </div>
+        </div>
+        <a href="${exp.interactiveLabUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" style="background: #ff5a36; border: none; white-space: nowrap; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-bolt"></i>
+          <span>Launch Interactive Lab</span>
+          <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.65rem;"></i>
+        </a>
+      </div>
+    ` : ''}
+
     <div class="modal-block">
       <h3 class="modal-block-title"><i class="fa-solid fa-circle-question"></i> The Problem & Hypothesis</h3>
       <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px;">
@@ -1335,13 +1541,22 @@ window.openExperimentModal = function (id) {
     </div>
 
     <div class="modal-block">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 12px; flex-wrap: wrap;">
         <h3 class="modal-block-title" style="margin-bottom: 0;"><i class="fa-solid fa-code"></i> Arduino C++ Sketch</h3>
-        <a href="https://github.com/PrerithM/Arduino-Projects/tree/main/${exp.githubPath}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
-          <i class="fa-brands fa-github"></i>
-          <span>Open on GitHub</span>
-          <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.65rem;"></i>
-        </a>
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+          ${exp.interactiveLabUrl ? `
+            <a href="${exp.interactiveLabUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #ff5a36, #ff7a55); border: none; font-weight: 600;">
+              <i class="fa-solid fa-bolt"></i>
+              <span>Launch Lab</span>
+              <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.65rem;"></i>
+            </a>
+          ` : ''}
+          <a href="https://github.com/PrerithM/Arduino-Projects/tree/main/${exp.githubPath}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+            <i class="fa-brands fa-github"></i>
+            <span>Open on GitHub</span>
+            <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.65rem;"></i>
+          </a>
+        </div>
       </div>
       
       <div class="code-container">
@@ -1581,8 +1796,11 @@ function initSearchOmniModal() {
       }
 
       resultsList.innerHTML = hits.map(hit => `
-        <div class="search-hit-item" onclick="openExperimentModal('${hit.id}'); closeSearchModal();">
-          <div class="search-hit-title">${hit.num}: ${hit.title}</div>
+        <div class="search-hit-item" onclick="handleCardClick(event, '${hit.id}', '${hit.interactiveLabUrl || ''}'); closeSearchModal();">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+            <div class="search-hit-title">${hit.num}: ${hit.title}</div>
+            ${hit.interactiveLabUrl ? `<span class="lab-pill-badge" style="font-size: 0.6rem; padding: 1px 6px;"><i class="fa-solid fa-bolt"></i> Lab ↗</span>` : ''}
+          </div>
           <div class="search-hit-sub">${hit.summary}</div>
         </div>
       `).join('');

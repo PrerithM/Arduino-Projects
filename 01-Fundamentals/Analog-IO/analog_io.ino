@@ -1,8 +1,9 @@
 /*
  * Module: Analog I/O & Continuous Voltage Measurement
- * Description: Reads a 10k potentiometer via ADC pin A0 with a 10-sample
- *              moving average filter to eliminate electrical noise.
- * Part of: Arduino Projects Cookbook
+ * Description: 
+ *
+ * Reads a 10k potentiometer via ADC pin A0 with a 10-sample
+ * moving average filter to eliminate electrical noise.
  */
 
 const int ANALOG_PIN = A0;

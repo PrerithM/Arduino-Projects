@@ -1489,6 +1489,59 @@ button {
   transform: translateX(4px);
 }
 
+.lab-pill-badge {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 90, 54, 0.15);
+  border: 1px solid rgba(255, 90, 54, 0.4);
+  color: #ff7253;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  animation: pulseLabGlow 3s infinite ease-in-out;
+}
+
+@keyframes pulseLabGlow {
+  0%, 100% {
+    border-color: rgba(255, 90, 54, 0.35);
+    box-shadow: 0 0 0 rgba(255, 90, 54, 0);
+  }
+  50% {
+    border-color: rgba(255, 90, 54, 0.7);
+    box-shadow: 0 0 10px rgba(255, 90, 54, 0.25);
+  }
+}
+
+.experiment-card.has-interactive-lab:hover {
+  border-color: rgba(255, 90, 54, 0.5);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.7), 0 0 24px rgba(255, 90, 54, 0.18);
+}
+
+.inspect-specs-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.inspect-specs-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--text-primary);
+  border-color: var(--border-medium);
+}
+
 /* ==========================================================================
    4. TECHNOLOGY MAP (HARDWARE STACK)
    ========================================================================== */

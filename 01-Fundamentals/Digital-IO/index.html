@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Digital Input / Output & Debounce — Arduino Hardware Lab</title>
+  <meta name="description"
+    content="Master digital binary logic, internal pull-up resistors, and mechanical switch debouncing algorithms on Arduino.">
+    <!-- Fonts & Icons matching main website -->
+  <link rel=preconnect href="https://fonts.googleapis.com">
+  <link rel=preconnect href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg: #07090d;
+      --panel: #0d1118;
+      --panel2: #111722;
+      --line: #202938;
+      --text: #eef2f7;
+      --muted: #8c98a9;
+      --accent: #ff5a36;
+      --cyan: #39d7ff;
+      --green: #52e39b;
+      --yellow: #ffd166;
+      --purple: #c792ea;
+      --blue: #82aaff;
+      --red: #ff6b6b;
+      --shadow: 0 18px 60px #0007
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 70% 0%, #14202d 0, #07090d 34%), var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      line-height: 1.55
+    }
+
+    body:before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .11;
+      background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, black, transparent 75%)
+    }
+
+    .container {
+      width: min(1180px, calc(100% - 40px));
+      margin: auto
+    }
+
+        /* Floating Navbar matching Main Website */
+    .navbar-wrapper {
+      position: fixed;
+      top: 16px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      z-index: 100;
+      padding: 0 20px;
+    }
+
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1100px;
+      height: 64px;
+      padding: 0 18px;
+      border-radius: 9999px;
+      background: rgba(13, 15, 18, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .pulse-icon {
+      width: 26px;
+      height: 26px;
+      filter: drop-shadow(0 0 8px #35C98A);
+    }
+
+    .brand-text {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      font-family: 'Outfit', sans-serif;
+      color: #eef2f7;
+    }
+
+    .brand-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(53, 201, 138, 0.12);
+      color: #35C98A;
+      border: 1px solid rgba(53, 201, 138, 0.3);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-links {
+      display: flex;
+      list-style: none;
+      gap: 4px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 4px 6px;
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      margin: 0;
+    }
+
+    .nav-link {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #8c98a9;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .nav-link:hover {
+      color: #eef2f7;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-link.active {
+      color: #eef2f7;
+      background: rgba(255, 255, 255, 0.12);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--cyan);
+      background: rgba(57, 215, 255, 0.08);
+      border: 1px solid rgba(57, 215, 255, 0.25);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+
+    .nav-back-btn:hover {
+      background: rgba(57, 215, 255, 0.16);
+      border-color: rgba(57, 215, 255, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .btn-github-nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #eef2f7;
+      padding: 6px 15px;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .btn-github-nav:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 860px) {
+      .nav-links { display: none; }
+    }
+
+    .hero { padding: 104px 0 62px;
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 54px;
+      align-items: center
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase
+    }
+
+    .hero h1 {
+      font-size: clamp(43px, 6vw, 75px);
+      line-height: .97;
+      letter-spacing: -.055em;
+      margin: 14px 0 20px
+    }
+
+    .hero p {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 650px
+    }
+
+    .buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 28px;
+      flex-wrap: wrap
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: #111722;
+      color: #fff;
+      padding: 12px 17px;
+      border-radius: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #090a0c
+    }
+
+    .btn:hover {
+      transform: translateY(-1px)
+    }
+
+    .hero-card,
+    .card {
+      background: rgba(13, 17, 24, .9);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: var(--shadow)
+    }
+
+    .arduino {
+      border: 1px solid #384352;
+      border-radius: 16px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden
+    }
+
+    .boardtop {
+      display: flex;
+      justify-content: space-between;
+      color: #9ca7b6;
+      font: 12px monospace
+    }
+
+    .board {
+      margin: 18px auto;
+      width: 88%;
+      height: 160px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #167c62, #0c5648);
+      border: 2px solid #2ba980;
+      position: relative
+    }
+
+    .chip {
+      position: absolute;
+      width: 100px;
+      height: 45px;
+      left: 50%;
+      top: 55px;
+      transform: translateX(-50%);
+      background: #15191f;
+      border: 1px solid #4b5664;
+      border-radius: 5px;
+      display: grid;
+      place-items: center;
+      font: 11px monospace;
+      color: #cdd5df
+    }
+
+    .pin {
+      position: absolute;
+      font: 10px monospace
+    }
+
+    .p5 {
+      left: 8px;
+      top: 10px
+    }
+
+    .d2 {
+      right: 8px;
+      top: 10px
+    }
+
+    .d13 {
+      left: 8px;
+      bottom: 10px
+    }
+
+    .led-indicator {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #203028;
+      border: 2px solid #3a5040;
+      top: 20px;
+      left: 50px;
+      transition: .15s;
+      box-shadow: none
+    }
+
+    .led-indicator.on {
+      background: #52e39b;
+      border-color: #a8ffd2;
+      box-shadow: 0 0 16px #52e39b
+    }
+
+    .btn-interactive {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #2e3848, #141a24);
+      border: 4px solid #455268;
+      box-shadow: 0 8px 0 #0c1017, 0 15px 30px #0009;
+      cursor: pointer;
+      margin: 18px auto;
+      display: grid;
+      place-items: center;
+      user-select: none;
+      transition: transform .08s, box-shadow .08s
+    }
+
+    .btn-interactive:active {
+      transform: translateY(6px);
+      box-shadow: 0 2px 0 #0c1017, 0 6px 15px #000a
+    }
+
+    .btn-cap {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ff5a36, #d83d1a);
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      color: #fff;
+      font-size: 12px;
+      letter-spacing: .05em;
+      border: 2px solid #ff886e
+    }
+
+    section {
+      padding: 66px 0
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: end;
+      margin-bottom: 24px
+    }
+
+    h2 {
+      font-size: 34px;
+      letter-spacing: -.035em;
+      margin: 0 0 6px
+    }
+
+    .lead {
+      color: var(--muted);
+      max-width: 700px;
+      margin: 0
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px
+    }
+
+    .three {
+      grid-template-columns: repeat(3, 1fr)
+    }
+
+    .two {
+      grid-template-columns: repeat(2, 1fr)
+    }
+
+    .flow {
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .node {
+      flex: 1;
+      min-width: 160px;
+      padding: 18px;
+      background: #0b1017;
+      border: 1px solid var(--line);
+      border-radius: 14px
+    }
+
+    .arrow {
+      display: grid;
+      place-items: center;
+      color: var(--cyan);
+      font-size: 22px
+    }
+
+    .node p {
+      color: var(--muted);
+      font-size: 14px
+    }
+
+    .icon {
+      font-size: 28px
+    }
+
+    .simple {
+      font-size: 16px
+    }
+
+    .callout {
+      background: #101722;
+      border: 1px solid #2b394b;
+      border-left: 3px solid var(--cyan);
+      padding: 17px;
+      border-radius: 12px
+    }
+
+    .callout.orange {
+      border-left-color: var(--accent)
+    }
+
+    .callout.green {
+      border-left-color: var(--green)
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 13px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    th {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--muted)
+    }
+
+    td code {
+      color: var(--cyan)
+    }
+
+    .sim {
+      display: grid;
+      grid-template-columns: .85fr 1.15fr;
+      gap: 18px
+    }
+
+    .control {
+      background: #090d13;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px;
+      text-align: center
+    }
+
+    .readout {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 18px;
+      text-align: left
+    }
+
+    .read {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #0c1118
+    }
+
+    .read span {
+      font: 11px monospace;
+      color: var(--muted)
+    }
+
+    .read b {
+      font-size: 20px;
+      display: block
+    }
+
+    .chart {
+      height: 260px;
+      background: repeating-linear-gradient(0deg, transparent 0 39px, #18202b 40px), repeating-linear-gradient(90deg, transparent 0 59px, #18202b 60px);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden
+    }
+
+    .chart canvas {
+      width: 100%;
+      height: 100%
+    }
+
+    .code-layout {
+      display: grid;
+      grid-template-columns: 1.35fr .65fr;
+      gap: 16px
+    }
+
+    .code {
+      background: #080b10;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden
+    }
+
+    .codebar {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font: 12px monospace
+    }
+
+    .copy {
+      border: 1px solid #354052;
+      background: #141b25;
+      color: #dce5ee;
+      padding: 6px 9px;
+      border-radius: 7px;
+      cursor: pointer;
+      font: 12px monospace
+    }
+
+    .copy:hover {
+      border-color: var(--cyan)
+    }
+
+    .code pre {
+      margin: 0;
+      padding: 20px;
+      overflow: auto;
+      font-size: 13px;
+      line-height: 1.7;
+      max-height: 600px
+    }
+
+    .kw {
+      color: var(--purple)
+    }
+
+    .type {
+      color: var(--blue)
+    }
+
+    .fn {
+      color: var(--yellow)
+    }
+
+    .num {
+      color: #f78c6c
+    }
+
+    .str {
+      color: var(--green)
+    }
+
+    .comment {
+      color: #6f849b
+    }
+
+    .var {
+      color: #f8f8f2
+    }
+
+    .serial {
+      background: #05080c;
+      border: 1px solid #1e2835;
+      border-radius: 16px;
+      padding: 18px;
+      font: 12px monospace;
+      min-height: 280px;
+      color: #a9f0ce;
+      overflow: hidden
+    }
+
+    .serial .head {
+      color: #7d8998;
+      margin-bottom: 12px
+    }
+
+    .serialline {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 12px
+    }
+
+    .explain-list {
+      display: grid;
+      gap: 11px
+    }
+
+    .explain-row {
+      display: grid;
+      grid-template-columns: 35px 1fr;
+      gap: 11px
+    }
+
+    .explain-row .n {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #182232;
+      color: var(--cyan);
+      display: grid;
+      place-items: center;
+      font-weight: 800
+    }
+
+    .explain-row p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .challenge {
+      border-left: 3px solid var(--accent)
+    }
+
+    .tag {
+      display: inline-block;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 9px;
+      color: #b8c3d0;
+      font: 11px monospace
+    }
+
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 35px 0;
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    @media(max-width:850px) {
+
+      .hero,
+      .sim,
+      .two,
+      .three,
+      .code-layout {
+        grid-template-columns: 1fr
+      }
+
+      .links {
+        display: none
+      }
+
+      .readout {
+        grid-template-columns: 1fr
+      }
+
+      .hero { padding-top: 96px
+      }
+    }
+  </style>
+</head>
+
+<body>
+    <!-- Floating Island Header matching main website -->
+  <header class="navbar-wrapper">
+    <nav class="navbar">
+      <a href="../../docs/index.html" class="brand-logo">
+        <svg class="pulse-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 16H8L11 6L16 26L21 11L24 16H30" stroke="#35C98A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="brand-text">
+          <span class="brand-name">PRERITH.M</span>
+          <span class="brand-badge">HW LAB</span>
+        </div>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#idea" class="nav-link">Architecture</a></li>
+        <li><a href="#simulator" class="nav-link active">Simulator</a></li>
+        <li><a href="#circuit" class="nav-link">Circuit</a></li>
+        <li><a href="#code" class="nav-link">Code</a></li>
+        <li><a href="#challenges" class="nav-link">Challenges</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="../../docs/index.html" class="nav-back-btn">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>Main Lab</span>
+        </a>
+        <a href="https://github.com/PrerithM/Arduino-Projects/tree/main/01-Fundamentals/Digital-IO" target="_blank" rel="noopener noreferrer" class="btn-github-nav">
+          <i class="fa-brands fa-github"></i>
+          <span>GitHub</span>
+          <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.65rem; opacity: 0.7;"></i>
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <div class="container">
+      <section class="hero">
+        <div>
+          <div class="eyebrow">01 · Fundamentals &middot; Digital I/O</div>
+          <h1>Digital Input / Output</h1>
+          <p>Read clean binary states (HIGH/LOW) using internal pull-up resistors and filter high-frequency mechanical
+            switch bounce with non-blocking temporal hysteresis.</p>
+          <div class="buttons"><a class="btn primary" href="#simulator">Try the simulator</a><a class="btn"
+              href="#code">Open the code</a></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:22px"><span class="tag">BINARY LOGIC</span><span
+              class="tag">INPUT_PULLUP</span><span class="tag">50ms DEBOUNCE</span><span
+              class="tag">NON-BLOCKING</span><span class="tag">PIN D2 &amp; D13</span></div>
+        </div>
+        <div class="hero-card">
+          <div class="arduino">
+            <div class="boardtop"><span>ARDUINO UNO R3</span><span>DIGITAL DEBOUNCE LAB</span></div>
+            <div class="board"><span class="pin p5">5V</span><span class="pin d2">D2 (BTN)</span><span
+                class="pin d13">D13 (LED)</span>
+              <div class="led-indicator" id="heroLed" title="D13 Output"></div>
+              <div class="chip">ATmega328P</div>
+            </div>
+            <div class="btn-interactive" id="heroBtn" title="Click or tap to toggle input pin D2">
+              <div class="btn-cap">PRESS</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:10px;color:#8d99a8;font:11px monospace">
+              <span>PIN D2: <b id="heroD2" style="color:var(--cyan)">HIGH</b></span><span>LED D13: <b id="heroLedText"
+                  style="color:var(--muted)">OFF</b></span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="idea">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Core Architecture</div>
+            <h2>The Binary Signal Model</h2>
+            <p class="lead">Microcontroller inputs are CMOS logic gates. Understanding pull-ups and contact bouncing is
+              essential for reliable physical computing.</p>
+          </div>
+        </div>
+        <div class="three grid">
+          <div class="card">
+            <div class="icon">🔌</div>
+            <h3>Floating Input Hazard</h3>
+            <p class="simple muted">An unconnected input pin acts like a radio antenna picking up static EMI, drifting
+              unpredictably between 0 and 1.</p>
+          </div>
+          <div class="card">
+            <div class="icon">🛡️</div>
+            <h3>Internal Pull-Up</h3>
+            <p class="simple muted"><code>INPUT_PULLUP</code> activates an internal 20k–50kΩ resistor to 5V,
+              establishing a defined default HIGH state until tied to GND.</p>
+          </div>
+          <div class="card">
+            <div class="icon">⏱️</div>
+            <h3>Mechanical Bounce</h3>
+            <p class="simple muted">Microscopic switch contacts physically bounce for 5–20ms upon closure, firing dozens
+              of false triggers if unfiltered.</p>
+          </div>
+        </div>
+        <div class="callout" style="margin-top:16px"><b>The Debounce Rule:</b> Never trust a mechanical transition
+          immediately. Verify that the electrical level remains unchanged for a continuous 50ms window before committing
+          the state change.</div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Signal Pipeline</div>
+            <h2>Debounce State Machine Execution</h2>
+          </div>
+        </div>
+        <div class="flow">
+          <div class="node"><b>1 &middot; Contact Made</b>
+            <p>Spring contacts strike; pin voltage plummets to 0V (Active LOW).</p>
+          </div>
+          <div class="arrow">&rarr;</div>
+          <div class="node"><b>2 &middot; Bounce Burst</b>
+            <p>Microscopic vibrations produce 10–30 toggles in 15 milliseconds.</p>
+          </div>
+          <div class="arrow">&rarr;</div>
+          <div class="node"><b>3 &middot; Timer Reset</b>
+            <p>Any state change records timestamp: <code>lastDebounceTime = millis()</code>.</p>
+          </div>
+          <div class="arrow">&rarr;</div>
+          <div class="node"><b>4 &middot; 50ms Stability Window</b>
+            <p>Once reading remains continuous for 50ms, state is accepted.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="circuit">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Hardware Schematic</div>
+            <h2>Wiring & Pin Architecture</h2>
+            <p class="lead">By using the ATmega328P's internal pull-up resistor, you only need two wires and zero
+              external resistors.</p>
+          </div>
+        </div>
+        <div class="two">
+          <div class="card">
+            <table>
+              <tr>
+                <th>Arduino Pin</th>
+                <th>Pushbutton Terminal</th>
+                <th>Electrical Behavior</th>
+              </tr>
+              <tr>
+                <td><code>Pin D2</code></td>
+                <td>Terminal A</td>
+                <td>Senses ground connection (Pulled HIGH internally)</td>
+              </tr>
+              <tr>
+                <td><code>GND</code></td>
+                <td>Terminal B</td>
+                <td>Pulls D2 to 0V when contacts close</td>
+              </tr>
+              <tr>
+                <td><code>Pin D13</code></td>
+                <td>Onboard LED (SCK)</td>
+                <td>Hardware output indicator driven HIGH/LOW</td>
+              </tr>
+            </table>
+          </div>
+          <div class="card">
+            <h3>⚡ Active-Low Logic Reference</h3>
+            <p><span class="tag">UNPRESSED</span> Pin D2 = <b>HIGH (1)</b> via internal 30k&Omega; pull-up to 5V.</p>
+            <p><span class="tag">PRESSED</span> Pin D2 = <b>LOW (0)</b> shunted directly to GND.</p>
+            <p><span class="tag">BENEFIT</span> Eliminates external 10k&Omega; pulldown resistors and simplifies PCBs.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="simulator">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Interactive Lab</div>
+            <h2>Live Mechanical Bounce vs. Debounced Signal</h2>
+            <p class="lead">Press or hold the interactive button to observe mechanical contact bounce in real time on
+              the digital oscilloscope.</p>
+          </div>
+        </div>
+        <div class="sim">
+          <div class="control">
+            <h3>🕹️ Tactile Pushbutton</h3>
+            <p class="muted" style="margin-top:0">Click or tap to trigger hardware input:</p>
+            <div class="btn-interactive" id="labBtn">
+              <div class="btn-cap">TRIGGER</div>
+            </div>
+            <div class="readout">
+              <div class="read"><span>RAW PIN D2</span><b id="rawPin" style="color:var(--cyan)">HIGH (1)</b></div>
+              <div class="read"><span>FILTERED</span><b id="stableState" style="color:var(--green)">IDLE</b></div>
+              <div class="read"><span>LED (D13)</span><b id="ledStateText" style="color:var(--muted)">OFF</b></div>
+            </div>
+            <div class="callout orange" style="margin-top:17px;text-align:left"><b>Test this:</b> Click rapidly. Notice
+              how the raw line bounces wildly, while the filtered signal executes a single clean transition.</div>
+          </div>
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <h3 style="margin:0">Dual Oscilloscope (Raw vs. Debounced)</h3><span class="tag" id="oscStatus">LIVE
+                SCAN</span>
+            </div>
+            <div class="chart"><canvas id="bounceChart" width="900" height="260"></canvas></div>
+            <div
+              style="display:flex;justify-content:space-between;margin-top:8px;font:11px monospace;color:var(--muted)">
+              <span><b style="color:#ff6b6b">&mdash; Raw Physical Pin</b> (shows bounce)</span><span><b
+                  style="color:#52e39b">&mdash; Debounced Output</b> (filtered 50ms)</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Engineering Insight</div>
+            <h2>Why delay() Destroys Real-Time Responsiveness</h2>
+            <p class="lead">Many beginner tutorials use <code>delay(50)</code> for debouncing. Here is why that is an
+              anti-pattern in professional systems.</p>
+          </div>
+        </div>
+        <div class="two">
+          <div class="card">
+            <h3>Blocking with delay()</h3>
+            <p class="muted"><code>delay()</code> completely halts the microcontroller instruction clock. During that
+              50ms window:</p>
+            <ul style="color:var(--red);line-height:1.8;padding-left:20px">
+              <li>Rotary encoders miss positioning pulses.</li>
+              <li>Ultrasonic distance sensors time out.</li>
+              <li>Incoming Serial characters overflow the 64-byte UART buffer.</li>
+              <li>Motor emergency stops cannot be triggered.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Non-Blocking with millis()</h3>
+            <p class="muted">A state-machine tracks elapsed time using the internal hardware millisecond counter:</p>
+            <ul style="color:var(--green);line-height:1.8;padding-left:20px">
+              <li>CPU executes at full 16MHz clock rate.</li>
+              <li>Sensor polling and communication continue simultaneously.</li>
+              <li>Zero CPU cycles are wasted in idle spin-loops.</li>
+              <li>Scales cleanly to dozens of concurrent buttons.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="code">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Firmware Laboratory</div>
+            <h2>Microcontroller Firmware Implementation</h2>
+            <p class="lead">Comparison of clean basic toggle vs production non-blocking debounce state machine.</p>
+          </div>
+        </div>
+        <div class="code-layout">
+          <div class="code">
+            <div class="codebar"><span>digital_basic.ino</span><button class="copy" onclick="copyBasic()">Copy
+                code</button></div>
+            <pre id="basicCode"><span class="comment">/* Digital I/O Direct Button Reading (Unfiltered) */</span>
+
+<span class="kw">const</span> <span class="type">int</span> BUTTON_PIN = <span class="num">2</span>;
+<span class="kw">const</span> <span class="type">int</span> LED_PIN = <span class="num">13</span>;
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="comment">// Enable internal pull-up resistor (Active LOW)</span>
+  <span class="fn">pinMode</span>(BUTTON_PIN, <span class="type">INPUT_PULLUP</span>);
+  <span class="fn">pinMode</span>(LED_PIN, <span class="type">OUTPUT</span>);
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="type">int</span> buttonState = <span class="fn">digitalRead</span>(BUTTON_PIN);
+
+  <span class="comment">// When pressed, button connects pin 2 to GND (LOW)</span>
+  <span class="kw">if</span> (buttonState == <span class="type">LOW</span>) {
+    <span class="fn">digitalWrite</span>(LED_PIN, <span class="type">HIGH</span>);
+  } <span class="kw">else</span> {
+    <span class="fn">digitalWrite</span>(LED_PIN, <span class="type">LOW</span>);
+  }
+}</pre>
+          </div>
+          <div class="card">
+            <h3>🔎 Register & API Analysis</h3>
+            <div class="explain-list">
+              <div class="explain-row">
+                <div class="n">1</div>
+                <div><b><code>pinMode(2, INPUT_PULLUP)</code></b>
+                  <p>Configures DDRD bit 2 to 0 (input) and PORTD bit 2 to 1, engaging the internal pull-up transistor.
+                  </p>
+                </div>
+              </div>
+              <div class="explain-row">
+                <div class="n">2</div>
+                <div><b><code>digitalRead(2)</code></b>
+                  <p>Reads the instantaneous PIND input register. Returns 1 for &gt;3.0V (HIGH) or 0 for &lt;1.5V (LOW).
+                  </p>
+                </div>
+              </div>
+              <div class="explain-row">
+                <div class="n">3</div>
+                <div><b><code>millis() - lastTime</code></b>
+                  <p>Computes elapsed time safely using unsigned long subtraction, avoiding rollover overflow bugs.</p>
+                </div>
+              </div>
+              <div class="explain-row">
+                <div class="n">4</div>
+                <div><b><code>ledState = !ledState</code></b>
+                  <p>Bitwise NOT operator toggles binary state between 1 and 0 on verified button strokes.</p>
+                </div>
+              </div>
+              <div class="explain-row">
+                <div class="n">5</div>
+                <div><b><code>digitalWrite(13, state)</code></b>
+                  <p>Drives the onboard LED buffer gate directly to VCC (+5V) or GND (0V).</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:18px" class="two">
+          <div class="code">
+            <div class="codebar"><span>digital_io.ino &middot; production debounced state machine</span><button
+                class="copy" onclick="copyFull()">Copy full code</button></div>
+            <pre id="fullCode"><span class="comment">/*
+ * Module: Digital I/O with Pushbutton Debounce
+ * Clean non-blocking software debouncing via millis()
+ */</span>
+
+<span class="kw">const</span> <span class="type">int</span> BUTTON_PIN = <span class="num">2</span>;
+<span class="kw">const</span> <span class="type">int</span> LED_PIN = <span class="num">13</span>;
+
+<span class="type">int</span> ledState = <span class="type">LOW</span>;
+<span class="type">int</span> buttonState;
+<span class="type">int</span> lastButtonState = <span class="type">HIGH</span>;
+
+<span class="type">unsigned long</span> lastDebounceTime = <span class="num">0</span>;
+<span class="kw">const</span> <span class="type">unsigned long</span> debounceDelay = <span class="num">50</span>;
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">pinMode</span>(BUTTON_PIN, <span class="type">INPUT_PULLUP</span>);
+  <span class="fn">pinMode</span>(LED_PIN, <span class="type">OUTPUT</span>);
+  <span class="fn">digitalWrite</span>(LED_PIN, ledState);
+
+  Serial.<span class="fn">begin</span>(<span class="num">9600</span>);
+  Serial.<span class="fn">println</span>(F(<span class="str">"Digital I/O Ready. Pushbutton toggles D13."</span>));
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="type">int</span> reading = <span class="fn">digitalRead</span>(BUTTON_PIN);
+
+  <span class="kw">if</span> (reading != lastButtonState) {
+    lastDebounceTime = <span class="fn">millis</span>();
+  }
+
+  <span class="kw">if</span> ((<span class="fn">millis</span>() - lastDebounceTime) &gt; debounceDelay) {
+    <span class="kw">if</span> (reading != buttonState) {
+      buttonState = reading;
+
+      <span class="kw">if</span> (buttonState == <span class="type">LOW</span>) {
+        ledState = !ledState;
+        <span class="fn">digitalWrite</span>(LED_PIN, ledState);
+        Serial.<span class="fn">print</span>(F(<span class="str">"Button Pressed! LED is now: "</span>));
+        Serial.<span class="fn">println</span>(ledState ? F(<span class="str">"ON"</span>) : F(<span class="str">"OFF"</span>));
+      }
+    }
+  }
+
+  lastButtonState = reading;
+}</pre>
+          </div>
+          <div class="serial">
+            <div class="head">SERIAL MONITOR &middot; 9600 BAUD</div>
+            <div id="serialLines"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="challenges">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Engineering Challenges</div>
+            <h2>Laboratory Extensions</h2>
+            <p class="lead">Expand the digital input state machine to handle advanced interaction patterns.</p>
+          </div>
+        </div>
+        <div class="three grid">
+          <div class="card challenge">
+            <h3>01 &middot; Long Press Detection</h3>
+            <p class="muted">Differentiate between a short click (&lt;500ms) and a long hold (&gt;1500ms) to reset
+              configuration.</p><span class="tag">TIMER: holdDuration &gt; 1500</span>
+          </div>
+          <div class="card challenge">
+            <h3>02 &middot; Double-Click Gesture</h3>
+            <p class="muted">Detect when two successive clicks occur within a 300ms window without freezing the main
+              loop.</p><span class="tag">STATE: clickCount == 2</span>
+          </div>
+          <div class="card challenge">
+            <h3>03 &middot; 4-State Cycle Sequencer</h3>
+            <p class="muted">Use each button stroke to advance through 4 discrete system states:
+              <code>OFF &rarr; LOW &rarr; MED &rarr; HIGH</code>.</p><span class="tag">MOD: state = (state + 1) %
+              4</span>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Technical Summary</div>
+            <h2>Engineering Concept Mastery</h2>
+          </div>
+        </div>
+        <div class="card simple">
+          <p>Core Takeaway:</p>
+          <div class="callout"><b>&ldquo;Digital inputs sample discrete 0V (LOW) and 5V (HIGH) logic thresholds.
+              Utilizing internal pull-ups prevents erratic floating states, while 50ms non-blocking millis() filtering
+              reliably eliminates physical contact bounce without halting the CPU.&rdquo;</b></div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer>
+    <div class="container footer">Arduino Hardware Lab &middot; Professional Engineering Notebook</div>
+  </footer>
+
+  <script>
+    const heroBtn = document.getElementById('heroBtn'), labBtn = document.getElementById('labBtn'), heroLed = document.getElementById('heroLed'), heroLedText = document.getElementById('heroLedText'), heroD2 = document.getElementById('heroD2'), rawPin = document.getElementById('rawPin'), stableState = document.getElementById('stableState'), ledStateText = document.getElementById('ledStateText'), serialLines = document.getElementById('serialLines'), canvas = document.getElementById('bounceChart'), ctx = canvas.getContext('2d');
+    let isPressed = false, ledActive = false, rawTrace = Array(100).fill(1), debouncedTrace = Array(100).fill(1), bounceRemaining = 0;
+    function logSerial(msg) { let d = new Date(), ts = d.toTimeString().split(' ')[0] + '.' + String(d.getMilliseconds()).padStart(3, '0'); let line = document.createElement('div'); line.className = 'serialline'; line.innerHTML = `<span style="color:#7d8998">[${ts}]</span><span>${msg}</span>`; serialLines.prepend(line); while (serialLines.children.length > 8) serialLines.lastChild.remove() }
+    function triggerPress() { if (isPressed) return; isPressed = true; bounceRemaining = 14; heroD2.textContent = 'LOW (0)'; heroD2.style.color = 'var(--accent)'; rawPin.textContent = 'LOW (0)'; rawPin.style.color = 'var(--accent)'; stableState.textContent = 'DEBOUNCING...'; stableState.style.color = 'var(--yellow)'; setTimeout(() => { if (isPressed) { ledActive = !ledActive; heroLed.classList.toggle('on', ledActive); heroLedText.textContent = ledActive ? 'ON' : 'OFF'; heroLedText.style.color = ledActive ? 'var(--green)' : 'var(--muted)'; ledStateText.textContent = ledActive ? 'ON' : 'OFF'; ledStateText.style.color = ledActive ? 'var(--green)' : 'var(--muted)'; stableState.textContent = 'PRESSED'; stableState.style.color = 'var(--green)'; logSerial(`Button Pressed! LED is now: ${ledActive ? 'ON' : 'OFF'}`) } }, 50) }
+    function triggerRelease() { isPressed = false; bounceRemaining = 10; heroD2.textContent = 'HIGH (1)'; heroD2.style.color = 'var(--cyan)'; rawPin.textContent = 'HIGH (1)'; rawPin.style.color = 'var(--cyan)'; stableState.textContent = 'IDLE'; stableState.style.color = 'var(--green)' }
+    [heroBtn, labBtn].forEach(b => { b.addEventListener('mousedown', triggerPress); b.addEventListener('mouseup', triggerRelease); b.addEventListener('touchstart', e => { e.preventDefault(); triggerPress() }); b.addEventListener('touchend', e => { e.preventDefault(); triggerRelease() }) });
+    function drawChart() { let w = canvas.width, h = canvas.height; ctx.clearRect(0, 0, w, h); let rawVal = isPressed ? 0 : 1; if (bounceRemaining > 0) { bounceRemaining--; rawVal = Math.random() > 0.5 ? 1 : 0 } rawTrace.push(rawVal); rawTrace.shift(); debouncedTrace.push(isPressed ? 0 : 1); debouncedTrace.shift(); ctx.strokeStyle = '#ff6b6b'; ctx.lineWidth = 2.5; ctx.beginPath(); rawTrace.forEach((v, i) => { let x = i / (rawTrace.length - 1) * w, y = h * 0.35 - v * 60; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y) }); ctx.stroke(); ctx.strokeStyle = '#52e39b'; ctx.lineWidth = 3; ctx.beginPath(); debouncedTrace.forEach((v, i) => { let x = i / (debouncedTrace.length - 1) * w, y = h * 0.85 - v * 60; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y) }); ctx.stroke(); ctx.fillStyle = '#ff6b6b'; ctx.font = '11px monospace'; ctx.fillText('RAW PIN D2', 14, 35); ctx.fillStyle = '#52e39b'; ctx.fillText('DEBOUNCED OUTPUT', 14, 145); requestAnimationFrame(drawChart) }
+    requestAnimationFrame(drawChart); logSerial("System booted. Listening on Pin D2...");
+    const basic = `/* Digital I/O Direct Button Reading (Unfiltered) */\n\nconst int BUTTON_PIN = 2;\nconst int LED_PIN = 13;\n\nvoid setup() {\n  pinMode(BUTTON_PIN, INPUT_PULLUP);\n  pinMode(LED_PIN, OUTPUT);\n}\n\nvoid loop() {\n  int buttonState = digitalRead(BUTTON_PIN);\n  if (buttonState == LOW) {\n    digitalWrite(LED_PIN, HIGH);\n  } else {\n    digitalWrite(LED_PIN, LOW);\n  }\n}`;
+    const full = `const int BUTTON_PIN = 2;\nconst int LED_PIN = 13;\n\nint ledState = LOW;\nint buttonState;\nint lastButtonState = HIGH;\n\nunsigned long lastDebounceTime = 0;\nconst unsigned long debounceDelay = 50;\n\nvoid setup() {\n  pinMode(BUTTON_PIN, INPUT_PULLUP);\n  pinMode(LED_PIN, OUTPUT);\n  digitalWrite(LED_PIN, ledState);\n\n  Serial.begin(9600);\n  Serial.println(F("Digital I/O Ready. Pushbutton toggles D13."));\n}\n\nvoid loop() {\n  int reading = digitalRead(BUTTON_PIN);\n  if (reading != lastButtonState) {\n    lastDebounceTime = millis();\n  }\n\n  if ((millis() - lastDebounceTime) > debounceDelay) {\n    if (reading != buttonState) {\n      buttonState = reading;\n      if (buttonState == LOW) {\n        ledState = !ledState;\n        digitalWrite(LED_PIN, ledState);\n        Serial.print(F("Button Pressed! LED is now: "));\n        Serial.println(ledState ? F("ON") : F("OFF"));\n      }\n    }\n  }\n  lastButtonState = reading;\n}`;
+    function copyText(t, b) { navigator.clipboard.writeText(t).then(() => { let old = b.textContent; b.textContent = 'Copied ✓'; setTimeout(() => b.textContent = old, 1200) }) }
+    function copyBasic() { copyText(basic, event.target) } function copyFull() { copyText(full, event.target) }
+  </script>
+</body>
+
+</html>

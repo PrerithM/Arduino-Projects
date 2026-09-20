@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Serial Communication & CLI — Arduino Hardware Lab</title>
+  <!-- Fonts & Icons matching main website -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg: #07090d;
+      --panel: #0d1118;
+      --panel2: #111722;
+      --line: #202938;
+      --text: #eef2f7;
+      --muted: #8c98a9;
+      --accent: #ff5a36;
+      --cyan: #39d7ff;
+      --green: #52e39b;
+      --yellow: #ffd166;
+      --purple: #c792ea;
+      --blue: #82aaff;
+      --red: #ff6b6b;
+      --shadow: 0 18px 60px #0007
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 70% 0%, #14202d 0, #07090d 34%), var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      line-height: 1.55
+    }
+
+    body:before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .11;
+      background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, black, transparent 75%)
+    }
+
+    .container {
+      width: min(1180px, calc(100% - 40px));
+      margin: auto
+    }
+
+    /* Floating Navbar matching Main Website */
+    .navbar-wrapper {
+      position: fixed;
+      top: 16px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      z-index: 100;
+      padding: 0 20px;
+    }
+
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1100px;
+      height: 64px;
+      padding: 0 18px;
+      border-radius: 9999px;
+      background: rgba(13, 15, 18, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .pulse-icon {
+      width: 26px;
+      height: 26px;
+      filter: drop-shadow(0 0 8px #35C98A);
+    }
+
+    .brand-text {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      font-family: 'Outfit', sans-serif;
+      color: #eef2f7;
+    }
+
+    .brand-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(53, 201, 138, 0.12);
+      color: #35C98A;
+      border: 1px solid rgba(53, 201, 138, 0.3);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-links {
+      display: flex;
+      list-style: none;
+      gap: 4px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 4px 6px;
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      margin: 0;
+    }
+
+    .nav-link {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #8c98a9;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .nav-link:hover {
+      color: #eef2f7;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-link.active {
+      color: #eef2f7;
+      background: rgba(255, 255, 255, 0.12);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--cyan);
+      background: rgba(57, 215, 255, 0.08);
+      border: 1px solid rgba(57, 215, 255, 0.25);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+
+    .nav-back-btn:hover {
+      background: rgba(57, 215, 255, 0.16);
+      border-color: rgba(57, 215, 255, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .btn-github-nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #eef2f7;
+      padding: 6px 15px;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .btn-github-nav:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 860px) {
+      .nav-links {
+        display: none;
+      }
+    }
+
+    .hero {
+      padding: 104px 0 62px;
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 54px;
+      align-items: center
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase
+    }
+
+    .hero h1 {
+      font-size: clamp(43px, 6vw, 75px);
+      line-height: .97;
+      letter-spacing: -.055em;
+      margin: 14px 0 20px
+    }
+
+    .hero p {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 650px
+    }
+
+    .buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 28px;
+      flex-wrap: wrap
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: #111722;
+      color: #fff;
+      padding: 12px 17px;
+      border-radius: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #090a0c
+    }
+
+    .btn:hover {
+      transform: translateY(-1px)
+    }
+
+    .hero-card,
+    .card {
+      background: rgba(13, 17, 24, .9);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: var(--shadow)
+    }
+
+    .arduino {
+      border: 1px solid #384352;
+      border-radius: 16px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden
+    }
+
+    .boardtop {
+      display: flex;
+      justify-content: space-between;
+      color: #9ca7b6;
+      font: 12px monospace
+    }
+
+    .board {
+      margin: 18px auto;
+      width: 88%;
+      height: 160px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #167c62, #0c5648);
+      border: 2px solid #2ba980;
+      position: relative
+    }
+
+    .chip {
+      position: absolute;
+      width: 100px;
+      height: 45px;
+      left: 50%;
+      top: 55px;
+      transform: translateX(-50%);
+      background: #15191f;
+      border: 1px solid #4b5664;
+      border-radius: 5px;
+      display: grid;
+      place-items: center;
+      font: 11px monospace;
+      color: #cdd5df
+    }
+
+    .pin {
+      position: absolute;
+      font: 10px monospace
+    }
+
+    .p5 {
+      left: 8px;
+      top: 10px
+    }
+
+    .rx {
+      right: 8px;
+      top: 10px
+    }
+
+    .tx {
+      right: 8px;
+      top: 25px
+    }
+
+    .d13 {
+      left: 8px;
+      bottom: 10px
+    }
+
+    .led-txrx {
+      position: absolute;
+      display: flex;
+      gap: 8px;
+      top: 20px;
+      left: 60px
+    }
+
+    .led-txrx span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #162420;
+      border: 1px solid #284438;
+      transition: .1s
+    }
+
+    .led-txrx span.flash {
+      background: #39d7ff;
+      box-shadow: 0 0 12px #39d7ff
+    }
+
+    section {
+      padding: 66px 0
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: end;
+      margin-bottom: 24px
+    }
+
+    h2 {
+      font-size: 34px;
+      letter-spacing: -.035em;
+      margin: 0 0 6px
+    }
+
+    .lead {
+      color: var(--muted);
+      max-width: 700px;
+      margin: 0
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px
+    }
+
+    .three {
+      grid-template-columns: repeat(3, 1fr)
+    }
+
+    .two {
+      grid-template-columns: repeat(2, 1fr)
+    }
+
+    .flow {
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .node {
+      flex: 1;
+      min-width: 160px;
+      padding: 18px;
+      background: #0b1017;
+      border: 1px solid var(--line);
+      border-radius: 14px
+    }
+
+    .arrow {
+      display: grid;
+      place-items: center;
+      color: var(--cyan);
+      font-size: 22px
+    }
+
+    .node p {
+      color: var(--muted);
+      font-size: 14px
+    }
+
+    .icon {
+      font-size: 28px
+    }
+
+    .simple {
+      font-size: 16px
+    }
+
+    .callout {
+      background: #101722;
+      border: 1px solid #2b394b;
+      border-left: 3px solid var(--cyan);
+      padding: 17px;
+      border-radius: 12px
+    }
+
+    .callout.orange {
+      border-left-color: var(--accent)
+    }
+
+    .callout.green {
+      border-left-color: var(--green)
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 13px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    th {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--muted)
+    }
+
+    td code {
+      color: var(--cyan)
+    }
+
+    .sim {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px
+    }
+
+    .terminal-box {
+      background: #04070b;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow)
+    }
+
+    .term-bar {
+      padding: 10px 16px;
+      background: #0d131c;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font: 12px monospace;
+      color: var(--muted)
+    }
+
+    .term-body {
+      height: 250px;
+      padding: 16px;
+      overflow-y: auto;
+      font: 13px "JetBrains Mono", monospace;
+      color: #a8f0ce;
+      background: #04070b;
+      line-height: 1.6
+    }
+
+    .term-input-row {
+      display: flex;
+      border-top: 1px solid var(--line);
+      background: #090d14
+    }
+
+    .term-prompt {
+      padding: 12px 14px;
+      color: var(--cyan);
+      font: 14px monospace;
+      font-weight: 700
+    }
+
+    .term-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font: 14px monospace;
+      padding: 12px 0;
+      outline: none
+    }
+
+    .term-send {
+      background: var(--panel2);
+      border: none;
+      border-left: 1px solid var(--line);
+      color: #fff;
+      padding: 0 20px;
+      cursor: pointer;
+      font: 13px monospace;
+      font-weight: 700
+    }
+
+    .term-send:hover {
+      background: var(--accent);
+      color: #000
+    }
+
+    .code-layout {
+      display: grid;
+      grid-template-columns: 1.35fr .65fr;
+      gap: 16px
+    }
+
+    .code {
+      background: #080b10;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden
+    }
+
+    .codebar {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font: 12px monospace
+    }
+
+    .copy {
+      border: 1px solid #354052;
+      background: #141b25;
+      color: #dce5ee;
+      padding: 6px 9px;
+      border-radius: 7px;
+      cursor: pointer;
+      font: 12px monospace
+    }
+
+    .copy:hover {
+      border-color: var(--cyan)
+    }
+
+    .code pre {
+      margin: 0;
+      padding: 20px;
+      overflow: auto;
+      font-size: 13px;
+      line-height: 1.7;
+      max-height: 600px
+    }
+
+    .kw {
+      color: var(--purple)
+    }
+
+    .type {
+      color: var(--blue)
+    }
+
+    .fn {
+      color: var(--yellow)
+    }
+
+    .num {
+      color: #f78c6c
+    }
+
+    .str {
+      color: var(--green)
+    }
+
+    .comment {
+      color: #6f849b
+    }
+
+    .var {
+      color: #f8f8f2
+    }
+
+    .serial {
+      background: #05080c;
+      border: 1px solid #1e2835;
+      border-radius: 16px;
+      padding: 18px;
+      font: 12px monospace;
+      min-height: 280px;
+      color: #a9f0ce;
+      overflow: hidden
+    }
+
+    .serial .head {
+      color: #7d8998;
+      margin-bottom: 12px
+    }
+
+    .serialline {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 12px
+    }
+
+    .explain-list {
+      display: grid;
+      gap: 11px
+    }
+
+    .explain-row {
+      display: grid;
+      grid-template-columns: 35px 1fr;
+      gap: 11px
+    }
+
+    .explain-row .n {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #182232;
+      color: var(--cyan);
+      display: grid;
+      place-items: center;
+      font-weight: 800
+    }
+
+    .explain-row p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .challenge {
+      border-left: 3px solid var(--accent)
+    }
+
+    .tag {
+      display: inline-block;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 9px;
+      color: #b8c3d0;
+      font: 11px monospace
+    }
+
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 35px 0;
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    @media(max-width:850px) {
+
+      .hero,
+      .two,
+      .three,
+      .code-layout {
+        grid-template-columns: 1fr
+      }
+
+      .links {
+        display: none
+      }
+
+      .hero {
+        padding-top: 55px
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Floating Island Header matching main website -->
+  <header class="navbar-wrapper">
+    <nav class="navbar">
+      <a href="../../docs/index.html" class="brand-logo">
+        <svg class="pulse-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 16H8L11 6L16 26L21 11L24 16H30" stroke="#35C98A" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+        <div class="brand-text">
+          <span class="brand-name">PRERITH.M</span>
+          <span class="brand-badge">HW LAB</span>
+        </div>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#idea" class="nav-link">Architecture</a></li>
+        <li><a href="#simulator" class="nav-link active">Simulator</a></li>
+        <li><a href="#circuit" class="nav-link">Circuit</a></li>
+        <li><a href="#code" class="nav-link">Code</a></li>
+        <li><a href="#challenges" class="nav-link">Challenges</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="../../docs/index.html" class="nav-back-btn">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>Main Lab</span>
+        </a>
+        <a href="https://github.com/PrerithM/Arduino-Projects/tree/main/01-Fundamentals/Serial-Communication"
+          target="_blank" rel="noopener noreferrer" class="btn-github-nav">
+          <i class="fa-brands fa-github"></i>
+          <span>GitHub</span>
+          <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.65rem; opacity: 0.7;"></i>
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <div class="container">
+      <section class="hero">
+        <div>
+          <div class="eyebrow">01 · Fundamentals &middot; Serial Communication</div>
+          <h1>Serial Communication & CLI</h1>
+          <p>Bi-directional asynchronous UART telemetry between Arduino and computer. Master framing bit timing,
+            circular FIFO buffers, and interactive command-line parsers.</p>
+          <div class="buttons"><a class="btn primary" href="#simulator">Try the terminal</a><a class="btn"
+              href="#code">Open the code</a></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:22px"><span class="tag">UART / USART</span><span
+              class="tag">115200 BAUD</span><span class="tag">64-BYTE FIFO</span><span class="tag">COMMAND
+              PARSER</span><span class="tag">PINS D0 &amp; D1</span></div>
+        </div>
+        <div class="hero-card">
+          <div class="arduino">
+            <div class="boardtop"><span>ARDUINO UNO R3</span><span>HARDWARE UART BRIDGE</span></div>
+            <div class="board"><span class="pin p5">5V</span><span class="pin rx">D0 (RX)</span><span class="pin tx">D1
+                (TX)</span><span class="pin d13">D13 (LED)</span>
+              <div class="led-txrx"><span id="txLed" title="TX Active"></span><span id="rxLed" title="RX Active"></span>
+              </div>
+              <div class="chip">ATmega328P</div>
+            </div>
+            <div
+              style="display:flex;justify-content:center;gap:16px;margin-top:14px;font:12px monospace;color:var(--muted)">
+              <span>TX ACTIVITY: <b id="txState" style="color:var(--cyan)">IDLE</b></span><span>RX ACTIVITY: <b
+                  id="rxState" style="color:var(--green)">IDLE</b></span>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:10px;color:#8d99a8;font:11px monospace">
+              <span>BAUD: <b>115200 8-N-1</b></span><span>VIRTUAL D13: <b id="boardLedState"
+                  style="color:var(--muted)">OFF</b></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="idea">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Core Architecture</div>
+            <h2>The Asynchronous UART Protocol</h2>
+            <p class="lead">Universal Asynchronous Receiver-Transmitter translates parallel processor data bytes into a
+              serial train of timed electrical pulses over two wires.</p>
+          </div>
+        </div>
+        <div class="three grid">
+          <div class="card">
+            <div class="icon">⏱️</div>
+            <h3>Baud Rate Clocking</h3>
+            <p class="simple muted">Because there is no shared clock wire, both sender and receiver must strictly agree
+              on baud rate (e.g., 115200 baud = 8.68&micro;s per bit).</p>
+          </div>
+          <div class="card">
+            <div class="icon">📥</div>
+            <h3>64-Byte FIFO Ring Buffer</h3>
+            <p class="simple muted">The ATmega328P hardware USART triggers internal interrupts on incoming bytes,
+              stacking them in a ring buffer so the main loop never drops data.</p>
+          </div>
+          <div class="card">
+            <div class="icon">⌨️</div>
+            <h3>Text Command Parser</h3>
+            <p class="simple muted">Accumulating characters until a newline (<code>\n</code>) delimiter triggers command
+              tokenization, allowing human operators to control hardware dynamically.</p>
+          </div>
+        </div>
+        <div class="callout" style="margin-top:16px"><b>UART Frame Architecture:</b> 1 Start Bit (LOW) &rarr; 8 Data
+          Bits (LSB first) &rarr; Optional Parity Bit &rarr; 1 Stop Bit (HIGH). Total: 10 physical bits per transmitted
+          ASCII character.</div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Signal Pipeline</div>
+            <h2>Data Ingestion & CLI Execution Pipeline</h2>
+          </div>
+        </div>
+        <div class="flow">
+          <div class="node"><b>1 &middot; Host Keystroke</b>
+            <p>Computer terminal sends ASCII byte sequence over USB cable.</p>
+          </div>
+          <div class="arrow">&rarr;</div>
+          <div class="node"><b>2 &middot; USB-to-UART Bridge</b>
+            <p>ATmega16U2 IC translates USB packets to 5V TTL serial on Pin D0 (RX).</p>
+          </div>
+          <div class="arrow">&rarr;</div>
+          <div class="node"><b>3 &middot; Hardware USART Ring Buffer</b>
+            <p>Incoming characters stored in 64-byte circular FIFO memory.</p>
+          </div>
+          <div class="arrow">&rarr;</div>
+          <div class="node"><b>4 &middot; Tokenizer Dispatch</b>
+            <p>Newline triggers string comparison (e.g. <code>LED ON</code>) and hardware actuation.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="circuit">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Hardware Schematic</div>
+            <h2>Wiring & Pin Architecture</h2>
+            <p class="lead">UART requires crossover wiring: Transmit (TX) always connects to Receive (RX).</p>
+          </div>
+        </div>
+        <div class="two">
+          <div class="card">
+            <table>
+              <tr>
+                <th>Arduino Pin</th>
+                <th>FTDI / External Device</th>
+                <th>Functional Description</th>
+              </tr>
+              <tr>
+                <td><code>Pin D0 (RX)</code></td>
+                <td>External TX &larr; Host</td>
+                <td>Receives incoming serial bits into UDR0 register</td>
+              </tr>
+              <tr>
+                <td><code>Pin D1 (TX)</code></td>
+                <td>External RX &rarr; Host</td>
+                <td>Transmits serialized telemetry bytes</td>
+              </tr>
+              <tr>
+                <td><code>GND</code></td>
+                <td>Common GND</td>
+                <td>Essential shared 0V electrical potential</td>
+              </tr>
+            </table>
+          </div>
+          <div class="card">
+            <h3>⚠️ Pin Multiplexing Warning</h3>
+            <p><span class="tag">PINS D0 &amp; D1</span> Connected directly to onboard USB-to-Serial converter.</p>
+            <p><span class="tag">CONFLICT</span> Using <code>digitalRead(0)</code> or <code>digitalWrite(1)</code> while
+              <code>Serial.begin()</code> is active causes bus contention and sketch upload errors.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="simulator">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Interactive Lab</div>
+            <h2>Live Arduino Serial Monitor & CLI Terminal</h2>
+            <p class="lead">Type real commands into the terminal below or click quick shortcuts to interact with the
+              simulated ATmega328P firmware.</p>
+          </div>
+        </div>
+        <div class="sim">
+          <div class="terminal-box">
+            <div class="term-bar">
+              <span>SERIAL CONSOLE &middot; /dev/ttyACM0</span>
+              <div style="display:flex;gap:12px;align-items:center">
+                <span>BAUD: <b>115200</b></span>
+                <button class="copy" id="btnClearTerm">Clear</button>
+              </div>
+            </div>
+            <div class="term-body" id="termOutput">
+              ========================================<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ARDUINO CLI ENGINE v1.0<br>
+              &nbsp;Available Commands:<br>
+              &nbsp;&nbsp;&nbsp;LED ON&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Turn pin 13 ON<br>
+              &nbsp;&nbsp;&nbsp;LED OFF&nbsp;&nbsp;&nbsp;&nbsp;- Turn pin 13 OFF<br>
+              &nbsp;&nbsp;&nbsp;READ A0&nbsp;&nbsp;&nbsp;&nbsp;- Sample analog pin A0<br>
+              &nbsp;&nbsp;&nbsp;PING&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Return PONG &amp; uptime<br>
+              ========================================<br>
+              &gt;&nbsp;
+            </div>
+            <div
+              style="padding:10px 16px;background:#0b1017;display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line)">
+              <button class="btn btn-sm" onclick="sendCmd('LED ON')">LED ON</button>
+              <button class="btn btn-sm" onclick="sendCmd('LED OFF')">LED OFF</button>
+              <button class="btn btn-sm" onclick="sendCmd('READ A0')">READ A0</button>
+              <button class="btn btn-sm" onclick="sendCmd('PING')">PING</button>
+              <button class="btn btn-sm" onclick="sendCmd('HELP')">HELP</button>
+            </div>
+            <form id="termForm" class="term-input-row" onsubmit="handleTermSubmit(event)">
+              <span class="term-prompt">&gt;</span>
+              <input type="text" id="termInput" class="term-input" placeholder="Type a command (e.g. LED ON, PING)..."
+                autocomplete="off">
+              <button type="submit" class="term-send">TRANSMIT</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section id="code">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Firmware Laboratory</div>
+            <h2>Microcontroller Firmware Implementation</h2>
+            <p class="lead">From simple echo loops to production state-buffered command line parsers.</p>
+          </div>
+        </div>
+        <div class="code-layout">
+          <div class="code">
+            <div class="codebar"><span>serial_basic.ino</span><button class="copy" onclick="copyBasic()">Copy
+                code</button></div>
+            <pre id="basicCode"><span class="comment">/* Minimal Serial Echo Loop */</span>
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="comment">// Configure hardware USART baud rate</span>
+  Serial.<span class="fn">begin</span>(<span class="num">115200</span>);
+  Serial.<span class="fn">println</span>(<span class="str">"UART Ready."</span>);
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="comment">// Check if bytes have arrived in the FIFO buffer</span>
+  <span class="kw">if</span> (Serial.<span class="fn">available</span>() &gt; <span class="num">0</span>) {
+    <span class="type">char</span> incomingByte = (<span class="type">char</span>)Serial.<span class="fn">read</span>();
+
+    <span class="comment">// Echo byte back to host</span>
+    Serial.<span class="fn">print</span>(<span class="str">"Echo: "</span>);
+    Serial.<span class="fn">println</span>(incomingByte);
+  }
+}</pre>
+          </div>
+          <div class="card">
+            <h3>🔎 Register & API Analysis</h3>
+            <div class="explain-list">
+              <div class="explain-row">
+                <div class="n">1</div>
+                <div><b><code>Serial.begin(115200)</code></b>
+                  <p>Sets UBRR0 register to 8 (at 16MHz clock with U2X0=1), configuring baud clock dividers.</p>
+                </div>
+              </div>
+              <div class="explain-row">
+                <div class="n">2</div>
+                <div><b><code>Serial.available()</code></b>
+                  <p>Returns difference between circular buffer head and tail pointers without blocking CPU.</p>
+                </div>
+              </div>
+              <div class="explain-row">
+                <div class="n">3</div>
+                <div><b><code>inputString.reserve(64)</code></b>
+                  <p>Pre-allocates heap memory buffer, eliminating dynamic memory fragmentation crashes.</p>
+                </div>
+              </div>
+              <div class="explain-row">
+                <div class="n">4</div>
+                <div><b><code>serialEvent()</code></b>
+                  <p>Weak AVR runtime hook invoked automatically between <code>loop()</code> iterations if data is
+                    pending.</p>
+                </div>
+              </div>
+              <div class="explain-row">
+                <div class="n">5</div>
+                <div><b><code>inputString.trim()</code></b>
+                  <p>Strips carriage returns (<code>\r</code>) and line feeds (<code>\n</code>) for clean string
+                    comparisons.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:18px" class="two">
+          <div class="code">
+            <div class="codebar"><span>serial_communication.ino &middot; production CLI parser</span><button
+                class="copy" onclick="copyFull()">Copy full code</button></div>
+            <pre id="fullCode"><span class="comment">/*
+ * Module: Serial Communication &amp; Interactive CLI
+ * Description: Robust command parser running at 115200 baud
+ */</span>
+
+<span class="kw">const</span> <span class="type">int</span> STATUS_LED = <span class="num">13</span>;
+String inputString = <span class="str">""</span>;
+<span class="type">bool</span> stringComplete = <span class="type">false</span>;
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">pinMode</span>(STATUS_LED, <span class="type">OUTPUT</span>);
+  Serial.<span class="fn">begin</span>(<span class="num">115200</span>);
+  inputString.<span class="fn">reserve</span>(<span class="num">64</span>);
+
+  Serial.<span class="fn">println</span>(F(<span class="str">"========================================"</span>));
+  Serial.<span class="fn">println</span>(F(<span class="str">"      ARDUINO CLI ENGINE v1.0           "</span>));
+  Serial.<span class="fn">println</span>(F(<span class="str">" Available Commands:                    "</span>));
+  Serial.<span class="fn">println</span>(F(<span class="str">"   LED ON     - Turn pin 13 ON          "</span>));
+  Serial.<span class="fn">println</span>(F(<span class="str">"   LED OFF    - Turn pin 13 OFF         "</span>));
+  Serial.<span class="fn">println</span>(F(<span class="str">"   READ A0    - Sample analog pin A0    "</span>));
+  Serial.<span class="fn">println</span>(F(<span class="str">"   PING       - Return PONG &amp; uptime    "</span>));
+  Serial.<span class="fn">println</span>(F(<span class="str">"========================================"</span>));
+  Serial.<span class="fn">print</span>(F(<span class="str">"&gt; "</span>));
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="kw">if</span> (stringComplete) {
+    inputString.<span class="fn">trim</span>();
+
+    <span class="kw">if</span> (inputString.<span class="fn">equalsIgnoreCase</span>(<span class="str">"LED ON"</span>)) {
+      <span class="fn">digitalWrite</span>(STATUS_LED, <span class="type">HIGH</span>);
+      Serial.<span class="fn">println</span>(F(<span class="str">"OK: LED set to HIGH"</span>));
+    } <span class="kw">else</span> <span class="kw">if</span> (inputString.<span class="fn">equalsIgnoreCase</span>(<span class="str">"LED OFF"</span>)) {
+      <span class="fn">digitalWrite</span>(STATUS_LED, <span class="type">LOW</span>);
+      Serial.<span class="fn">println</span>(F(<span class="str">"OK: LED set to LOW"</span>));
+    } <span class="kw">else</span> <span class="kw">if</span> (inputString.<span class="fn">equalsIgnoreCase</span>(<span class="str">"READ A0"</span>)) {
+      <span class="type">int</span> val = <span class="fn">analogRead</span>(A0);
+      <span class="type">float</span> v = (val * <span class="num">5.0</span>) / <span class="num">1023.0</span>;
+      Serial.<span class="fn">print</span>(F(<span class="str">"ANALOG A0: "</span>));
+      Serial.<span class="fn">print</span>(val);
+      Serial.<span class="fn">print</span>(F(<span class="str">" ("</span>));
+      Serial.<span class="fn">print</span>(v, <span class="num">2</span>);
+      Serial.<span class="fn">println</span>(F(<span class="str">"V)"</span>));
+    } <span class="kw">else</span> <span class="kw">if</span> (inputString.<span class="fn">equalsIgnoreCase</span>(<span class="str">"PING"</span>)) {
+      Serial.<span class="fn">print</span>(F(<span class="str">"PONG (Uptime: "</span>));
+      Serial.<span class="fn">print</span>(<span class="fn">millis</span>() / <span class="num">1000</span>);
+      Serial.<span class="fn">println</span>(F(<span class="str">"s)"</span>));
+    } <span class="kw">else</span> <span class="kw">if</span> (inputString.<span class="fn">length</span>() &gt; <span class="num">0</span>) {
+      Serial.<span class="fn">print</span>(F(<span class="str">"ERR: Unknown command '"</span>));
+      Serial.<span class="fn">print</span>(inputString);
+      Serial.<span class="fn">println</span>(F(<span class="str">"'"</span>));
+    }
+
+    inputString = <span class="str">""</span>;
+    stringComplete = <span class="type">false</span>;
+    Serial.<span class="fn">print</span>(F(<span class="str">"&gt; "</span>));
+  }
+}
+
+<span class="kw">void</span> <span class="fn">serialEvent</span>() {
+  <span class="kw">while</span> (Serial.<span class="fn">available</span>()) {
+    <span class="type">char</span> inChar = (<span class="type">char</span>)Serial.<span class="fn">read</span>();
+    <span class="kw">if</span> (inChar == <span class="str">'\n'</span>) {
+      stringComplete = <span class="type">true</span>;
+    } <span class="kw">else</span> <span class="kw">if</span> (inChar != <span class="str">'\r'</span>) {
+      inputString += inChar;
+    }
+  }
+}</pre>
+          </div>
+          <div class="serial">
+            <div class="head">UART REGISTER METRICS</div>
+            <div style="line-height:2;color:var(--text);font-family:monospace;font-size:13px">
+              <div>UBRR0: <code>0x0008 (115200)</code></div>
+              <div>FRAME: <code>8 Data, 1 Stop, No Parity</code></div>
+              <div>FIFO BUFFER: <code>64 Bytes Ring</code></div>
+              <div>BAUD ERROR: <code>-3.5% (Within 5% TTL tolerance)</code></div>
+              <div>BUFFER USAGE: <b style="color:var(--green)">0 / 64 Bytes (0%)</b></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="challenges">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Engineering Challenges</div>
+            <h2>Laboratory Extensions</h2>
+            <p class="lead">Expand serial communication into professional telemetry and control networks.</p>
+          </div>
+        </div>
+        <div class="three grid">
+          <div class="card challenge">
+            <h3>01 &middot; Parameterized PWM Command</h3>
+            <p class="muted">Parse dynamic values from strings like <code>SET PWM 180</code> to control motor speed
+              remotely.</p><span class="tag">TOKEN: sscanf(str, "SET PWM %d")</span>
+          </div>
+          <div class="card challenge">
+            <h3>02 &middot; High-Baud JSON Telemetry</h3>
+            <p class="muted">Stream structured sensor data packets at 115200 baud formatted for Python data plotting
+              scripts.</p><span class="tag">FORMAT: {"a0": 512, "v": 2.5}</span>
+          </div>
+          <div class="card challenge">
+            <h3>03 &middot; Binary Framing with CRC8</h3>
+            <p class="muted">Replace ASCII text with framed binary packets protected by a Cyclic Redundancy Check byte.
+            </p><span class="tag">PROTOCOL: [0xAA, LEN, CMD, CRC]</span>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Technical Summary</div>
+            <h2>Engineering Concept Mastery</h2>
+          </div>
+        </div>
+        <div class="card simple">
+          <p>Core Takeaway:</p>
+          <div class="callout"><b>&ldquo;UART communication provides asynchronous full-duplex byte transfers without a
+              shared clock. Buffering incoming streams in a 64-byte ring buffer and parsing newline-delimited command
+              packets provides deterministic machine control.&rdquo;</b></div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer>
+    <div class="container footer">Arduino Hardware Lab &middot; Professional Engineering Notebook</div>
+  </footer>
+
+  <script>
+    const termOutput = document.getElementById('termOutput'), termInput = document.getElementById('termInput'), rxLed = document.getElementById('rxLed'), txLed = document.getElementById('txLed'), rxState = document.getElementById('rxState'), txState = document.getElementById('txState'), boardLedState = document.getElementById('boardLedState'), btnClearTerm = document.getElementById('btnClearTerm');
+    let bootTime = Date.now(), ledOn = false;
+    function flashRx() { rxLed.className = 'flash'; rxState.textContent = 'RECV'; rxState.style.color = 'var(--cyan)'; setTimeout(() => { rxLed.className = ''; rxState.textContent = 'IDLE'; rxState.style.color = 'var(--muted)' }, 120) }
+    function flashTx() { txLed.className = 'flash'; txState.textContent = 'XMIT'; txState.style.color = 'var(--accent)'; setTimeout(() => { txLed.className = ''; txState.textContent = 'IDLE'; txState.style.color = 'var(--muted)' }, 120) }
+    function writeTerm(html) { termOutput.innerHTML += html; termOutput.scrollTop = termOutput.scrollHeight }
+    btnClearTerm.addEventListener('click', () => { termOutput.innerHTML = '&gt;&nbsp;' });
+    function sendCmd(cmd) { flashRx(); writeTerm(`<span style="color:#fff">${cmd}</span><br>`); setTimeout(() => { flashTx(); let clean = cmd.trim().toUpperCase(); if (clean === 'LED ON') { ledOn = true; boardLedState.textContent = 'ON'; boardLedState.style.color = 'var(--green)'; writeTerm('OK: LED set to HIGH<br>&gt;&nbsp;') } else if (clean === 'LED OFF') { ledOn = false; boardLedState.textContent = 'OFF'; boardLedState.style.color = 'var(--muted)'; writeTerm('OK: LED set to LOW<br>&gt;&nbsp;') } else if (clean === 'READ A0') { let raw = Math.floor(Math.random() * 200) + 450; let v = (raw * 5 / 1023).toFixed(2); writeTerm(`ANALOG A0: ${raw} (${v}V)<br>&gt;&nbsp;`) } else if (clean === 'PING') { let up = Math.floor((Date.now() - bootTime) / 1000); writeTerm(`PONG (Uptime: ${up}s)<br>&gt;&nbsp;`) } else if (clean === 'HELP') { writeTerm('Commands: LED ON, LED OFF, READ A0, PING, HELP<br>&gt;&nbsp;') } else { writeTerm(`<span style="color:#ff6b6b">ERR: Unknown command '${cmd}'</span><br>&gt;&nbsp;`) } }, 80); }
+    function handleTermSubmit(e) { e.preventDefault(); let v = termInput.value.trim(); if (!v) return; termInput.value = ''; sendCmd(v) }
+    const basic = `/* Minimal Serial Echo Loop */\n\nvoid setup() {\n  Serial.begin(115200);\n  Serial.println("UART Ready.");\n}\n\nvoid loop() {\n  if (Serial.available() > 0) {\n    char incomingByte = (char)Serial.read();\n    Serial.print("Echo: ");\n    Serial.println(incomingByte);\n  }\n}`;
+    const full = `const int STATUS_LED = 13;\nString inputString = "";\nbool stringComplete = false;\n\nvoid setup() {\n  pinMode(STATUS_LED, OUTPUT);\n  Serial.begin(115200);\n  inputString.reserve(64);\n  Serial.println(F("CLI Engine Ready"));\n  Serial.print(F("> "));\n}\n\nvoid loop() {\n  if (stringComplete) {\n    inputString.trim();\n    if (inputString.equalsIgnoreCase("LED ON")) {\n      digitalWrite(STATUS_LED, HIGH);\n      Serial.println(F("OK: LED set to HIGH"));\n    } else if (inputString.equalsIgnoreCase("LED OFF")) {\n      digitalWrite(STATUS_LED, LOW);\n      Serial.println(F("OK: LED set to LOW"));\n    }\n    inputString = "";\n    stringComplete = false;\n    Serial.print(F("> "));\n  }\n}\n\nvoid serialEvent() {\n  while (Serial.available()) {\n    char inChar = (char)Serial.read();\n    if (inChar == '\\n') stringComplete = true;\n    else if (inChar != '\\r') inputString += inChar;\n  }\n}`;
+    function copyText(t, b) { navigator.clipboard.writeText(t).then(() => { let old = b.textContent; b.textContent = 'Copied ✓'; setTimeout(() => b.textContent = old, 1200) }) }
+    function copyBasic() { copyText(basic, event.target) } function copyFull() { copyText(full, event.target) }
+  </script>
+</body>
+
+</html>
