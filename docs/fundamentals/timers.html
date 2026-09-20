@@ -1,19 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Concurrent Timers & Multitasking — Arduino Hardware Lab</title>
-<meta name="description" content="Eliminate blocking delay() calls. Master non-blocking cooperative multitasking, millis() rollover arithmetic, and timer task queues.">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Concurrent Timers & Multitasking — Arduino Hardware Lab</title>
+  <meta name="description"
+    content="Eliminate blocking delay() calls. Master non-blocking cooperative multitasking, millis() rollover arithmetic, and timer task queues.">
   <!-- Fonts & Icons matching main website -->
   <link rel=preconnect href="https://fonts.googleapis.com">
   <link rel=preconnect href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-:root{--bg:#07090d;--panel:#0d1118;--panel2:#111722;--line:#202938;--text:#eef2f7;--muted:#8c98a9;--accent:#ff5a36;--cyan:#39d7ff;--green:#52e39b;--yellow:#ffd166;--purple:#c792ea;--blue:#82aaff;--red:#ff6b6b;--shadow:0 18px 60px #0007}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 70% 0%,#14202d 0,#07090d 34%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
-body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.11;background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(to bottom,black,transparent 75%)}
-.container{width:min(1180px,calc(100% - 40px));margin:auto}    /* Floating Navbar matching Main Website */
+    :root {
+      --bg: #07090d;
+      --panel: #0d1118;
+      --panel2: #111722;
+      --line: #202938;
+      --text: #eef2f7;
+      --muted: #8c98a9;
+      --accent: #ff5a36;
+      --cyan: #39d7ff;
+      --green: #52e39b;
+      --yellow: #ffd166;
+      --purple: #c792ea;
+      --blue: #82aaff;
+      --red: #ff6b6b;
+      --shadow: 0 18px 60px #0007
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 70% 0%, #14202d 0, #07090d 34%), var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      line-height: 1.55
+    }
+
+    body:before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .11;
+      background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, black, transparent 75%)
+    }
+
+    .container {
+      width: min(1180px, calc(100% - 40px));
+      margin: auto
+    }
+
+    /* Floating Navbar matching Main Website */
     .navbar-wrapper {
       position: fixed;
       top: 16px;
@@ -161,26 +212,533 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.11;ba
     }
 
     @media (max-width: 860px) {
-      .nav-links { display: none; }
+      .nav-links {
+        display: none;
+      }
     }
-.hero { padding: 104px 0 62px;display:grid;grid-template-columns:1.05fr .95fr;gap:54px;align-items:center}.eyebrow{color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.hero h1{font-size:clamp(43px,6vw,75px);line-height:.97;letter-spacing:-.055em;margin:14px 0 20px}.hero p{font-size:18px;color:var(--muted);max-width:650px}.buttons{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:#111722;color:#fff;padding:12px 17px;border-radius:11px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;font-size:14px}.btn.primary{background:var(--accent);border-color:var(--accent);color:#090a0c}.btn:hover{transform:translateY(-1px)}
-.hero-card,.card{background:rgba(13,17,24,.9);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow)}.arduino{border:1px solid #384352;border-radius:16px;padding:20px;position:relative;overflow:hidden}.boardtop{display:flex;justify-content:space-between;color:#9ca7b6;font:12px monospace}.board{margin:18px auto;width:88%;height:160px;border-radius:10px;background:linear-gradient(135deg,#167c62,#0c5648);border:2px solid #2ba980;position:relative}.chip{position:absolute;width:100px;height:45px;left:50%;top:55px;transform:translateX(-50%);background:#15191f;border:1px solid #4b5664;border-radius:5px;display:grid;place-items:center;font:11px monospace;color:#cdd5df}.pin{position:absolute;font:10px monospace}.p5{left:8px;top:10px}.d11{right:8px;top:10px}.d12{right:8px;top:25px}.gnd{left:8px;bottom:10px}.dual-led-preview{display:flex;justify-content:center;gap:40px;margin-top:14px}.led-item{text-align:center;font:11px monospace;color:var(--muted)}.led-circle{width:22px;height:22px;border-radius:50%;background:#162420;border:2px solid #284438;margin:6px auto;transition:.08s}.led-circle.active-fast{background:#39d7ff;box-shadow:0 0 16px #39d7ff;border-color:#b4f2ff}.led-circle.active-slow{background:#ff5a36;box-shadow:0 0 16px #ff5a36;border-color:#ff9e87}
-section{padding:66px 0}.section-head{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:24px}h2{font-size:34px;letter-spacing:-.035em;margin:0 0 6px}.lead{color:var(--muted);max-width:700px;margin:0}.grid{display:grid;gap:16px}.three{grid-template-columns:repeat(3,1fr)}.two{grid-template-columns:repeat(2,1fr)}
-.flow{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}.node{flex:1;min-width:160px;padding:18px;background:#0b1017;border:1px solid var(--line);border-radius:14px}.arrow{display:grid;place-items:center;color:var(--cyan);font-size:22px}.node p{color:var(--muted);font-size:14px}.icon{font-size:28px}.simple{font-size:16px}.callout{background:#101722;border:1px solid #2b394b;border-left:3px solid var(--cyan);padding:17px;border-radius:12px}.callout.orange{border-left-color:var(--accent)}.callout.green{border-left-color:var(--green)}
-table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:13px;border-bottom:1px solid var(--line)}th{font-size:11px;text-transform:uppercase;color:var(--muted)}td code{color:var(--cyan)}
-.sim{display:grid;grid-template-columns:.9fr 1.1fr;gap:18px}.control{background:#090d13;border:1px solid var(--line);border-radius:18px;padding:22px}.task-bar-wrap{margin-top:14px}.task-header{display:flex;justify-content:space-between;font:12px monospace;color:var(--muted);margin-bottom:4px}.task-progress{height:8px;background:#151d29;border-radius:4px;overflow:hidden;border:1px solid var(--line)}.task-fill{height:100%;background:var(--cyan);width:0%}.readout{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}.read{padding:14px;border:1px solid var(--line);border-radius:12px;background:#0c1118}.read span{font:11px monospace;color:var(--muted)}.read b{font-size:20px;display:block}
-.code-layout{display:grid;grid-template-columns:1.35fr .65fr;gap:16px}.code{background:#080b10;border:1px solid var(--line);border-radius:16px;overflow:hidden}.codebar{padding:11px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;color:var(--muted);font:12px monospace}.copy{border:1px solid #354052;background:#141b25;color:#dce5ee;padding:6px 9px;border-radius:7px;cursor:pointer;font:12px monospace}.copy:hover{border-color:var(--cyan)}.code pre{margin:0;padding:20px;overflow:auto;font-size:13px;line-height:1.7;max-height:600px}.kw{color:var(--purple)}.type{color:var(--blue)}.fn{color:var(--yellow)}.num{color:#f78c6c}.str{color:var(--green)}.comment{color:#6f849b}.var{color:#f8f8f2}.serial{background:#05080c;border:1px solid #1e2835;border-radius:16px;padding:18px;font:12px monospace;min-height:280px;color:#a9f0ce;overflow:hidden}.serial .head{color:#7d8998;margin-bottom:12px}.serialline{display:grid;grid-template-columns:90px 100px 100px;gap:10px}
-.explain-list{display:grid;gap:11px}.explain-row{display:grid;grid-template-columns:35px 1fr;gap:11px}.explain-row .n{width:30px;height:30px;border-radius:50%;background:#182232;color:var(--cyan);display:grid;place-items:center;font-weight:800}.explain-row p{margin:2px 0 0;color:var(--muted);font-size:13px}.challenge{border-left:3px solid var(--accent)}.tag{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:5px 9px;color:#b8c3d0;font:11px monospace}.footer{border-top:1px solid var(--line);padding:35px 0;color:var(--muted);font-size:13px}
-@media(max-width:850px){.hero,.sim,.two,.three,.code-layout{grid-template-columns:1fr}.links{display:none}.readout{grid-template-columns:1fr}.hero { padding-top: 96px}}
-</style>
+
+    .hero {
+      padding: 104px 0 62px;
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 54px;
+      align-items: center
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase
+    }
+
+    .hero h1 {
+      font-size: clamp(43px, 6vw, 75px);
+      line-height: .97;
+      letter-spacing: -.055em;
+      margin: 14px 0 20px
+    }
+
+    .hero p {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 650px
+    }
+
+    .buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 28px;
+      flex-wrap: wrap
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: #111722;
+      color: #fff;
+      padding: 12px 17px;
+      border-radius: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #090a0c
+    }
+
+    .btn:hover {
+      transform: translateY(-1px)
+    }
+
+    .hero-card,
+    .card {
+      background: rgba(13, 17, 24, .9);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: var(--shadow)
+    }
+
+    .arduino {
+      border: 1px solid #384352;
+      border-radius: 16px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden
+    }
+
+    .boardtop {
+      display: flex;
+      justify-content: space-between;
+      color: #9ca7b6;
+      font: 12px monospace
+    }
+
+    .board {
+      margin: 18px auto;
+      width: 88%;
+      height: 160px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #167c62, #0c5648);
+      border: 2px solid #2ba980;
+      position: relative
+    }
+
+    .chip {
+      position: absolute;
+      width: 100px;
+      height: 45px;
+      left: 50%;
+      top: 55px;
+      transform: translateX(-50%);
+      background: #15191f;
+      border: 1px solid #4b5664;
+      border-radius: 5px;
+      display: grid;
+      place-items: center;
+      font: 11px monospace;
+      color: #cdd5df
+    }
+
+    .pin {
+      position: absolute;
+      font: 10px monospace
+    }
+
+    .p5 {
+      left: 8px;
+      top: 10px
+    }
+
+    .d11 {
+      right: 8px;
+      top: 10px
+    }
+
+    .d12 {
+      right: 8px;
+      top: 25px
+    }
+
+    .gnd {
+      left: 8px;
+      bottom: 10px
+    }
+
+    .dual-led-preview {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 14px
+    }
+
+    .led-item {
+      text-align: center;
+      font: 11px monospace;
+      color: var(--muted)
+    }
+
+    .led-circle {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #162420;
+      border: 2px solid #284438;
+      margin: 6px auto;
+      transition: .08s
+    }
+
+    .led-circle.active-fast {
+      background: #39d7ff;
+      box-shadow: 0 0 16px #39d7ff;
+      border-color: #b4f2ff
+    }
+
+    .led-circle.active-slow {
+      background: #ff5a36;
+      box-shadow: 0 0 16px #ff5a36;
+      border-color: #ff9e87
+    }
+
+    section {
+      padding: 66px 0
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: end;
+      margin-bottom: 24px
+    }
+
+    h2 {
+      font-size: 34px;
+      letter-spacing: -.035em;
+      margin: 0 0 6px
+    }
+
+    .lead {
+      color: var(--muted);
+      max-width: 700px;
+      margin: 0
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px
+    }
+
+    .three {
+      grid-template-columns: repeat(3, 1fr)
+    }
+
+    .two {
+      grid-template-columns: repeat(2, 1fr)
+    }
+
+    .flow {
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .node {
+      flex: 1;
+      min-width: 160px;
+      padding: 18px;
+      background: #0b1017;
+      border: 1px solid var(--line);
+      border-radius: 14px
+    }
+
+    .arrow {
+      display: grid;
+      place-items: center;
+      color: var(--cyan);
+      font-size: 22px
+    }
+
+    .node p {
+      color: var(--muted);
+      font-size: 14px
+    }
+
+    .icon {
+      font-size: 28px
+    }
+
+    .simple {
+      font-size: 16px
+    }
+
+    .callout {
+      background: #101722;
+      border: 1px solid #2b394b;
+      border-left: 3px solid var(--cyan);
+      padding: 17px;
+      border-radius: 12px
+    }
+
+    .callout.orange {
+      border-left-color: var(--accent)
+    }
+
+    .callout.green {
+      border-left-color: var(--green)
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 13px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    th {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--muted)
+    }
+
+    td code {
+      color: var(--cyan)
+    }
+
+    .sim {
+      display: grid;
+      grid-template-columns: .9fr 1.1fr;
+      gap: 18px
+    }
+
+    .control {
+      background: #090d13;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px
+    }
+
+    .task-bar-wrap {
+      margin-top: 14px
+    }
+
+    .task-header {
+      display: flex;
+      justify-content: space-between;
+      font: 12px monospace;
+      color: var(--muted);
+      margin-bottom: 4px
+    }
+
+    .task-progress {
+      height: 8px;
+      background: #151d29;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--line)
+    }
+
+    .task-fill {
+      height: 100%;
+      background: var(--cyan);
+      width: 0%
+    }
+
+    .readout {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 18px
+    }
+
+    .read {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #0c1118
+    }
+
+    .read span {
+      font: 11px monospace;
+      color: var(--muted)
+    }
+
+    .read b {
+      font-size: 20px;
+      display: block
+    }
+
+    .code-layout {
+      display: grid;
+      grid-template-columns: 1.35fr .65fr;
+      gap: 16px
+    }
+
+    .code {
+      background: #080b10;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden
+    }
+
+    .codebar {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font: 12px monospace
+    }
+
+    .copy {
+      border: 1px solid #354052;
+      background: #141b25;
+      color: #dce5ee;
+      padding: 6px 9px;
+      border-radius: 7px;
+      cursor: pointer;
+      font: 12px monospace
+    }
+
+    .copy:hover {
+      border-color: var(--cyan)
+    }
+
+    .code pre {
+      margin: 0;
+      padding: 20px;
+      overflow: auto;
+      font-size: 13px;
+      line-height: 1.7;
+      max-height: 600px
+    }
+
+    .kw {
+      color: var(--purple)
+    }
+
+    .type {
+      color: var(--blue)
+    }
+
+    .fn {
+      color: var(--yellow)
+    }
+
+    .num {
+      color: #f78c6c
+    }
+
+    .str {
+      color: var(--green)
+    }
+
+    .comment {
+      color: #6f849b
+    }
+
+    .var {
+      color: #f8f8f2
+    }
+
+    .serial {
+      background: #05080c;
+      border: 1px solid #1e2835;
+      border-radius: 16px;
+      padding: 18px;
+      font: 12px monospace;
+      min-height: 280px;
+      color: #a9f0ce;
+      overflow: hidden
+    }
+
+    .serial .head {
+      color: #7d8998;
+      margin-bottom: 12px
+    }
+
+    .serialline {
+      display: grid;
+      grid-template-columns: 90px 100px 100px;
+      gap: 10px
+    }
+
+    .explain-list {
+      display: grid;
+      gap: 11px
+    }
+
+    .explain-row {
+      display: grid;
+      grid-template-columns: 35px 1fr;
+      gap: 11px
+    }
+
+    .explain-row .n {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #182232;
+      color: var(--cyan);
+      display: grid;
+      place-items: center;
+      font-weight: 800
+    }
+
+    .explain-row p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .challenge {
+      border-left: 3px solid var(--accent)
+    }
+
+    .tag {
+      display: inline-block;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 9px;
+      color: #b8c3d0;
+      font: 11px monospace
+    }
+
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 35px 0;
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    @media(max-width:850px) {
+
+      .hero,
+      .sim,
+      .two,
+      .three,
+      .code-layout {
+        grid-template-columns: 1fr
+      }
+
+      .links {
+        display: none
+      }
+
+      .readout {
+        grid-template-columns: 1fr
+      }
+
+      .hero {
+        padding-top: 96px
+      }
+    }
+  </style>
 </head>
+
 <body>
   <!-- Floating Island Header matching main website -->
   <header class="navbar-wrapper">
     <nav class="navbar">
       <a href="../index.html" class="brand-logo">
         <svg class="pulse-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M2 16H8L11 6L16 26L21 11L24 16H30" stroke="#35C98A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 16H8L11 6L16 26L21 11L24 16H30" stroke="#35C98A" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round" />
         </svg>
         <div class="brand-text">
           <span class="brand-name">PRERITH.M</span>
@@ -201,7 +759,8 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:13px;bor
           <i class="fa-solid fa-arrow-left"></i>
           <span>Main Lab</span>
         </a>
-        <a href="https://github.com/PrerithM/Arduino-Projects/tree/main/01-Fundamentals/Timers" target="_blank" rel="noopener noreferrer" class="btn-github-nav">
+        <a href="https://github.com/PrerithM/Arduino-Projects/tree/main/01-Fundamentals/Timers" target="_blank"
+          rel="noopener noreferrer" class="btn-github-nav">
           <i class="fa-brands fa-github"></i>
           <span>GitHub</span>
           <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.65rem; opacity: 0.7;"></i>
@@ -210,67 +769,214 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:13px;bor
     </nav>
   </header>
 
-<main><div class="container">
-<section class="hero">
-<div><div class="eyebrow">01 · Fundamentals &middot; Timers</div><h1>Concurrent Timers & Multitasking</h1>
-<p>Eliminate blocking <code>delay()</code> bottlenecks entirely. Execute multiple independent tasks concurrently at different frequencies using non-blocking hardware time arithmetic.</p>
-<div class="buttons"><a class="btn primary" href="#simulator">Try the scheduler</a><a class="btn" href="#code">Open the code</a></div>
-<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:22px"><span class="tag">NON-BLOCKING</span><span class="tag">MILLIS() ROLLOVER SAFE</span><span class="tag">COOPERATIVE SCHEDULER</span><span class="tag">ZERO LATENCY</span><span class="tag">TASK STRUCTS</span></div></div>
-<div class="hero-card"><div class="arduino"><div class="boardtop"><span>ARDUINO UNO R3</span><span>COOPERATIVE TASK SCHEDULER</span></div><div class="board"><span class="pin p5">5V</span><span class="pin d11">D11 (4Hz)</span><span class="pin d12">D12 (1Hz)</span><span class="pin gnd">GND</span><div class="chip">ATmega328P</div></div>
-<div class="dual-led-preview">
-<div class="led-item"><span>FAST (250ms)</span><div class="led-circle" id="ledFast"></div><b id="textFast" style="color:var(--cyan)">OFF</b></div>
-<div class="led-item"><span>SLOW (1000ms)</span><div class="led-circle" id="ledSlow"></div><b id="textSlow" style="color:var(--accent)">OFF</b></div>
-</div>
-<div style="display:flex;justify-content:space-between;margin-top:10px;color:#8d99a8;font:11px monospace"><span>UPTIME: <b id="heroUptime">0</b>s</span><span>CPU UTILIZATION: <b style="color:var(--green)">100% UNBLOCKED</b></span></div></div></div>
-</section>
+  <main>
+    <div class="container">
+      <section class="hero">
+        <div>
+          <div class="eyebrow">01 · Fundamentals &middot; Timers</div>
+          <h1>Concurrent Timers & Multitasking</h1>
+          <p>Eliminate blocking <code>delay()</code> bottlenecks entirely. Execute multiple independent tasks
+            concurrently at different frequencies using non-blocking hardware time arithmetic.</p>
+          <div class="buttons"><a class="btn primary" href="#simulator">Try the scheduler</a><a class="btn"
+              href="#code">Open the code</a></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:22px"><span class="tag">NON-BLOCKING</span><span
+              class="tag">MILLIS() ROLLOVER SAFE</span><span class="tag">COOPERATIVE SCHEDULER</span><span
+              class="tag">ZERO LATENCY</span><span class="tag">TASK STRUCTS</span></div>
+        </div>
+        <div class="hero-card">
+          <div class="arduino">
+            <div class="boardtop"><span>ARDUINO UNO R3</span><span>COOPERATIVE TASK SCHEDULER</span></div>
+            <div class="board"><span class="pin p5">5V</span><span class="pin d11">D11 (4Hz)</span><span
+                class="pin d12">D12 (1Hz)</span><span class="pin gnd">GND</span>
+              <div class="chip">ATmega328P</div>
+            </div>
+            <div class="dual-led-preview">
+              <div class="led-item"><span>FAST (250ms)</span>
+                <div class="led-circle" id="ledFast"></div><b id="textFast" style="color:var(--cyan)">OFF</b>
+              </div>
+              <div class="led-item"><span>SLOW (1000ms)</span>
+                <div class="led-circle" id="ledSlow"></div><b id="textSlow" style="color:var(--accent)">OFF</b>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:10px;color:#8d99a8;font:11px monospace">
+              <span>UPTIME: <b id="heroUptime">0</b>s</span><span>CPU UTILIZATION: <b style="color:var(--green)">100%
+                  UNBLOCKED</b></span></div>
+          </div>
+        </div>
+      </section>
 
-<section id="idea"><div class="section-head"><div><div class="eyebrow">Core Architecture</div><h2>The Cooperative Multitasking Paradigm</h2><p class="lead">Why <code>delay()</code> paralyzes embedded single-core CPUs and how timestamp subtraction enables silky multi-tasking.</p></div></div>
-<div class="three grid">
-<div class="card"><div class="icon">⛔</div><h3>The delay() Trap</h3><p class="simple muted"><code>delay()</code> traps the program counter in a tight spin-loop, freezing all digital inputs, serial buffers, and motor controllers.</p></div>
-<div class="card"><div class="icon">⏱️</div><h3>Hardware Clock Wristwatch</h3><p class="simple muted">Timer0 increments an internal 32-bit tick counter every millisecond. Querying <code>millis()</code> allows the CPU to check time without pausing.</p></div>
-<div class="card"><div class="icon">🧩</div><h3>Modular Task Structs</h3><p class="simple muted">Packaging interval thresholds and timestamps into state structures provides a lightweight, deterministic scheduler without RTOS overhead.</p></div>
-</div>
-<div class="callout" style="margin-top:16px"><b>The Non-Blocking Equation:</b> <code>if (currentMillis - previousMillis &gt;= interval) { previousMillis = currentMillis; ... }</code>. This subtraction is mathematically immune to 49.7-day integer rollover!</div>
-</section>
+      <section id="idea">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Core Architecture</div>
+            <h2>The Cooperative Multitasking Paradigm</h2>
+            <p class="lead">Why <code>delay()</code> paralyzes embedded single-core CPUs and how timestamp subtraction
+              enables silky multi-tasking.</p>
+          </div>
+        </div>
+        <div class="three grid">
+          <div class="card">
+            <div class="icon">⛔</div>
+            <h3>The delay() Trap</h3>
+            <p class="simple muted"><code>delay()</code> traps the program counter in a tight spin-loop, freezing all
+              digital inputs, serial buffers, and motor controllers.</p>
+          </div>
+          <div class="card">
+            <div class="icon">⏱️</div>
+            <h3>Hardware Clock Wristwatch</h3>
+            <p class="simple muted">Timer0 increments an internal 32-bit tick counter every millisecond. Querying
+              <code>millis()</code> allows the CPU to check time without pausing.</p>
+          </div>
+          <div class="card">
+            <div class="icon">🧩</div>
+            <h3>Modular Task Structs</h3>
+            <p class="simple muted">Packaging interval thresholds and timestamps into state structures provides a
+              lightweight, deterministic scheduler without RTOS overhead.</p>
+          </div>
+        </div>
+        <div class="callout" style="margin-top:16px"><b>The Non-Blocking Equation:</b>
+          <code>if (currentMillis - previousMillis &gt;= interval) { previousMillis = currentMillis; ... }</code>. This
+          subtraction is mathematically immune to 49.7-day integer rollover!</div>
+      </section>
 
-<section><div class="section-head"><div><div class="eyebrow">Signal Pipeline</div><h2>Asynchronous Scheduler Loop Cycle</h2></div></div>
-<div class="flow"><div class="node"><b>1 &middot; Loop Iteration Start</b><p><code>now = millis()</code> fetches current hardware epoch.</p></div><div class="arrow">&rarr;</div><div class="node"><b>2 &middot; Evaluate Task 1</b><p>Check Fast LED (250ms). If delta reached, toggle and reset timestamp.</p></div><div class="arrow">&rarr;</div><div class="node"><b>3 &middot; Evaluate Task 2</b><p>Check Slow LED (1000ms). Runs completely independently of Task 1.</p></div><div class="arrow">&rarr;</div><div class="node"><b>4 &middot; Telemetry Stream</b><p>Transmits UART status every 2.0 seconds while loop remains receptive.</p></div></div>
-</section>
+      <section>
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Signal Pipeline</div>
+            <h2>Asynchronous Scheduler Loop Cycle</h2>
+          </div>
+        </div>
+        <div class="flow">
+          <div class="node"><b>1 &middot; Loop Iteration Start</b>
+            <p><code>now = millis()</code> fetches current hardware epoch.</p>
+          </div>
+          <div class="arrow">&rarr;</div>
+          <div class="node"><b>2 &middot; Evaluate Task 1</b>
+            <p>Check Fast LED (250ms). If delta reached, toggle and reset timestamp.</p>
+          </div>
+          <div class="arrow">&rarr;</div>
+          <div class="node"><b>3 &middot; Evaluate Task 2</b>
+            <p>Check Slow LED (1000ms). Runs completely independently of Task 1.</p>
+          </div>
+          <div class="arrow">&rarr;</div>
+          <div class="node"><b>4 &middot; Telemetry Stream</b>
+            <p>Transmits UART status every 2.0 seconds while loop remains receptive.</p>
+          </div>
+        </div>
+      </section>
 
-<section id="circuit"><div class="section-head"><div><div class="eyebrow">Hardware Schematic</div><h2>Wiring & Pin Architecture</h2><p class="lead">Wire two independent LEDs to observe asynchronous blink rates powered by a single microcontroller core.</p></div></div>
-<div class="two"><div class="card"><table><tr><th>Arduino Pin</th><th>Connected Hardware</th><th>Scheduled Cadence</th></tr><tr><td><code>Pin D11</code></td><td>220&Omega; Resistor &rarr; Fast LED</td><td>Toggles every <b>250ms (4.0 Hz)</b></td></tr><tr><td><code>Pin D12</code></td><td>220&Omega; Resistor &rarr; Slow LED</td><td>Toggles every <b>1000ms (1.0 Hz)</b></td></tr><tr><td><code>USB Serial</code></td><td>Host Telemetry Stream</td><td>Transmits every <b>2000ms (0.5 Hz)</b></td></tr></table></div>
-<div class="card"><h3>⚡ Rollover Math Proof</h3><p><span class="tag">49.7 DAYS</span> An <code>unsigned long</code> overflows at 2<sup>32</sup>-1 (4,294,967,295 ms).</p><p><span class="tag">UNSIGNED MATH</span> Because of binary two's-complement arithmetic, <code>now - previous</code> yields the exact positive elapsed duration across the rollover boundary.</p></div></div>
-</section>
+      <section id="circuit">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Hardware Schematic</div>
+            <h2>Wiring & Pin Architecture</h2>
+            <p class="lead">Wire two independent LEDs to observe asynchronous blink rates powered by a single
+              microcontroller core.</p>
+          </div>
+        </div>
+        <div class="two">
+          <div class="card">
+            <table>
+              <tr>
+                <th>Arduino Pin</th>
+                <th>Connected Hardware</th>
+                <th>Scheduled Cadence</th>
+              </tr>
+              <tr>
+                <td><code>Pin D11</code></td>
+                <td>220&Omega; Resistor &rarr; Fast LED</td>
+                <td>Toggles every <b>250ms (4.0 Hz)</b></td>
+              </tr>
+              <tr>
+                <td><code>Pin D12</code></td>
+                <td>220&Omega; Resistor &rarr; Slow LED</td>
+                <td>Toggles every <b>1000ms (1.0 Hz)</b></td>
+              </tr>
+              <tr>
+                <td><code>USB Serial</code></td>
+                <td>Host Telemetry Stream</td>
+                <td>Transmits every <b>2000ms (0.5 Hz)</b></td>
+              </tr>
+            </table>
+          </div>
+          <div class="card">
+            <h3>⚡ Rollover Math Proof</h3>
+            <p><span class="tag">49.7 DAYS</span> An <code>unsigned long</code> overflows at 2<sup>32</sup>-1
+              (4,294,967,295 ms).</p>
+            <p><span class="tag">UNSIGNED MATH</span> Because of binary two's-complement arithmetic,
+              <code>now - previous</code> yields the exact positive elapsed duration across the rollover boundary.</p>
+          </div>
+        </div>
+      </section>
 
-<section id="simulator"><div class="section-head"><div><div class="eyebrow">Interactive Lab</div><h2>Live Cooperative Task Scheduler Visualizer</h2><p class="lead">Watch three concurrent asynchronous tasks progress along independent timelines in real time without interfering with each other.</p></div></div>
-<div class="sim"><div class="control">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-<h3 style="margin:0">Task Execution Timelines</h3>
-<button class="btn" id="btnDelayInjection" style="border-color:var(--accent);color:var(--accent)">Inject 2s delay() Freeze</button>
-</div>
-<div class="task-bar-wrap">
-<div class="task-header"><span>TASK 1: FAST LED (250ms)</span><b id="p1Text" style="color:var(--cyan)">0%</b></div>
-<div class="task-progress"><div id="p1Fill" class="task-fill" style="background:var(--cyan)"></div></div>
-</div>
-<div class="task-bar-wrap">
-<div class="task-header"><span>TASK 2: SLOW LED (1000ms)</span><b id="p2Text" style="color:var(--accent)">0%</b></div>
-<div class="task-progress"><div id="p2Fill" class="task-fill" style="background:var(--accent)"></div></div>
-</div>
-<div class="task-bar-wrap">
-<div class="task-header"><span>TASK 3: TELEMETRY (2000ms)</span><b id="p3Text" style="color:var(--green)">0%</b></div>
-<div class="task-progress"><div id="p3Fill" class="task-fill" style="background:var(--green)"></div></div>
-</div>
-<div class="readout"><div class="read"><span>UPTIME</span><b id="simUptime" style="color:var(--text)">0.0 s</b></div><div class="read"><span>FAST TOGGLES</span><b id="fastToggles" style="color:var(--cyan)">0</b></div><div class="read"><span>SLOW TOGGLES</span><b id="slowToggles" style="color:var(--accent)">0</b></div></div>
-<div class="callout orange" style="margin-top:17px;text-align:left"><b id="schedStatus">Cooperative Scheduler Status:</b> Running at 16MHz clock with zero CPU blocks. All tasks fire predictably.</div></div>
-<div class="card"><div class="serial" style="min-height:310px"><div class="head">COOPERATIVE TELEMETRY STREAM &middot; 9600 BAUD</div>
-<div style="color:#7d8998;margin-bottom:8px">Uptime&nbsp;&nbsp;&nbsp; Fast LED&nbsp;&nbsp; Slow LED</div>
-<div id="serialLines"></div>
-</div></div></div>
-</section>
+      <section id="simulator">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Interactive Lab</div>
+            <h2>Live Cooperative Task Scheduler Visualizer</h2>
+            <p class="lead">Watch three concurrent asynchronous tasks progress along independent timelines in real time
+              without interfering with each other.</p>
+          </div>
+        </div>
+        <div class="sim">
+          <div class="control">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <h3 style="margin:0">Task Execution Timelines</h3>
+              <button class="btn" id="btnDelayInjection" style="border-color:var(--accent);color:var(--accent)">Inject
+                2s delay() Freeze</button>
+            </div>
+            <div class="task-bar-wrap">
+              <div class="task-header"><span>TASK 1: FAST LED (250ms)</span><b id="p1Text"
+                  style="color:var(--cyan)">0%</b></div>
+              <div class="task-progress">
+                <div id="p1Fill" class="task-fill" style="background:var(--cyan)"></div>
+              </div>
+            </div>
+            <div class="task-bar-wrap">
+              <div class="task-header"><span>TASK 2: SLOW LED (1000ms)</span><b id="p2Text"
+                  style="color:var(--accent)">0%</b></div>
+              <div class="task-progress">
+                <div id="p2Fill" class="task-fill" style="background:var(--accent)"></div>
+              </div>
+            </div>
+            <div class="task-bar-wrap">
+              <div class="task-header"><span>TASK 3: TELEMETRY (2000ms)</span><b id="p3Text"
+                  style="color:var(--green)">0%</b></div>
+              <div class="task-progress">
+                <div id="p3Fill" class="task-fill" style="background:var(--green)"></div>
+              </div>
+            </div>
+            <div class="readout">
+              <div class="read"><span>UPTIME</span><b id="simUptime" style="color:var(--text)">0.0 s</b></div>
+              <div class="read"><span>FAST TOGGLES</span><b id="fastToggles" style="color:var(--cyan)">0</b></div>
+              <div class="read"><span>SLOW TOGGLES</span><b id="slowToggles" style="color:var(--accent)">0</b></div>
+            </div>
+            <div class="callout orange" style="margin-top:17px;text-align:left"><b id="schedStatus">Cooperative
+                Scheduler Status:</b> Running at 16MHz clock with zero CPU blocks. All tasks fire predictably.</div>
+          </div>
+          <div class="card">
+            <div class="serial" style="min-height:310px">
+              <div class="head">COOPERATIVE TELEMETRY STREAM &middot; 9600 BAUD</div>
+              <div style="color:#7d8998;margin-bottom:8px">Uptime&nbsp;&nbsp;&nbsp; Fast LED&nbsp;&nbsp; Slow LED</div>
+              <div id="serialLines"></div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-<section id="code"><div class="section-head"><div><div class="eyebrow">Firmware Laboratory</div><h2>Microcontroller Firmware Implementation</h2><p class="lead">Moving from basic millis() timing to structured multi-task scheduling.</p></div></div>
-<div class="code-layout"><div class="code"><div class="codebar"><span>timers_basic.ino</span><button class="copy" onclick="copyBasic()">Copy code</button></div>
-<pre id="basicCode"><span class="comment">/* Blink Without Delay Fundamental Pattern */</span>
+      <section id="code">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Firmware Laboratory</div>
+            <h2>Microcontroller Firmware Implementation</h2>
+            <p class="lead">Moving from basic millis() timing to structured multi-task scheduling.</p>
+          </div>
+        </div>
+        <div class="code-layout">
+          <div class="code">
+            <div class="codebar"><span>timers_basic.ino</span><button class="copy" onclick="copyBasic()">Copy
+                code</button></div>
+            <pre id="basicCode"><span class="comment">/* Blink Without Delay Fundamental Pattern */</span>
 
 <span class="kw">const</span> <span class="type">int</span> LED_PIN = <span class="num">13</span>;
 <span class="type">int</span> ledState = <span class="type">LOW</span>;
@@ -294,15 +1000,53 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:13px;bor
   }
 
   <span class="comment">// CPU is completely free to read other sensors here!</span>
-}</pre></div>
-<div class="card"><h3>🔎 Register & API Analysis</h3><div class="explain-list">
-<div class="explain-row"><div class="n">1</div><div><b><code>struct TaskTimer</code></b><p>Encapsulates <code>previousMillis</code> and <code>interval</code>, making it trivial to declare dozens of independent tasks.</p></div></div>
-<div class="explain-row"><div class="n">2</div><div><b><code>Timer0 Hardware Interrupt</code></b><p>ATmega328P prescaler triggers <code>TIMER0_OVF_vect</code> every 1.024ms, incrementing the internal 32-bit tick count.</p></div></div>
-<div class="explain-row"><div class="n">3</div><div><b><code>Unsigned Subtraction</code></b><p>Ensures that even when time wraps around from 4,294,967,295 to 0, delta math remains accurate.</p></div></div>
-<div class="explain-row"><div class="n">4</div><div><b><code>Independent Frequencies</code></b><p>Task 1 (4Hz) and Task 2 (1Hz) share zero state and run completely asynchronously.</p></div></div>
-<div class="explain-row"><div class="n">5</div><div><b><code>Deterministic Responsiveness</code></b><p>Input events can be serviced in &lt;5 microseconds without waiting for long delay loops to complete.</p></div></div></div></div></div>
+}</pre>
+          </div>
+          <div class="card">
+            <h3>🔎 Register & API Analysis</h3>
+            <div class="explain-list">
+              <div class="explain-row">
+                <div class="n">1</div>
+                <div><b><code>struct TaskTimer</code></b>
+                  <p>Encapsulates <code>previousMillis</code> and <code>interval</code>, making it trivial to declare
+                    dozens of independent tasks.</p>
+                </div>
+              </div>
+              <div class="explain-row">
+                <div class="n">2</div>
+                <div><b><code>Timer0 Hardware Interrupt</code></b>
+                  <p>ATmega328P prescaler triggers <code>TIMER0_OVF_vect</code> every 1.024ms, incrementing the internal
+                    32-bit tick count.</p>
+                </div>
+              </div>
+              <div class="explain-row">
+                <div class="n">3</div>
+                <div><b><code>Unsigned Subtraction</code></b>
+                  <p>Ensures that even when time wraps around from 4,294,967,295 to 0, delta math remains accurate.</p>
+                </div>
+              </div>
+              <div class="explain-row">
+                <div class="n">4</div>
+                <div><b><code>Independent Frequencies</code></b>
+                  <p>Task 1 (4Hz) and Task 2 (1Hz) share zero state and run completely asynchronously.</p>
+                </div>
+              </div>
+              <div class="explain-row">
+                <div class="n">5</div>
+                <div><b><code>Deterministic Responsiveness</code></b>
+                  <p>Input events can be serviced in &lt;5 microseconds without waiting for long delay loops to
+                    complete.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-<div style="margin-top:18px" class="two"><div class="code"><div class="codebar"><span>timers.ino &middot; production cooperative scheduler</span><button class="copy" onclick="copyFull()">Copy full code</button></div><pre id="fullCode"><span class="comment">/*
+        <div style="margin-top:18px" class="two">
+          <div class="code">
+            <div class="codebar"><span>timers.ino &middot; production cooperative scheduler</span><button class="copy"
+                onclick="copyFull()">Copy full code</button></div>
+            <pre id="fullCode"><span class="comment">/*
  * Module: Non-Blocking Concurrent Timers &amp; Multitasking
  * Features: Multi-task cooperative struct scheduler
  */</span>
@@ -356,33 +1100,80 @@ TaskTimer taskTelemetry = {<span class="num">0</span>, <span class="num">2000</s
     Serial.<span class="fn">print</span>(F(<span class="str">" | Slow LED: "</span>));
     Serial.<span class="fn">println</span>(stateSlow ? <span class="str">"ON"</span> : <span class="str">"OFF"</span>);
   }
-}</pre></div><div class="serial"><div class="head">SCHEDULER ENGINE METRICS</div>
-<div style="line-height:2;color:var(--text);font-family:monospace;font-size:13px">
-<div>CORE CLOCK: <code>16.00 MHz ATmega328P</code></div>
-<div>TIME COUNTER: <code>Timer0 Prescaler /64</code></div>
-<div>TICK RESOLUTION: <code>1024 &micro;s (~1 ms)</code></div>
-<div>ROLLOVER CYCLE: <code>4,294,967,295 ms (49.7 Days)</code></div>
-<div>ACTIVE CONCURRENT TASKS: <b style="color:var(--green)">3 Independent Loops</b></div>
-</div></div></div>
-</section>
+}</pre>
+          </div>
+          <div class="serial">
+            <div class="head">SCHEDULER ENGINE METRICS</div>
+            <div style="line-height:2;color:var(--text);font-family:monospace;font-size:13px">
+              <div>CORE CLOCK: <code>16.00 MHz ATmega328P</code></div>
+              <div>TIME COUNTER: <code>Timer0 Prescaler /64</code></div>
+              <div>TICK RESOLUTION: <code>1024 &micro;s (~1 ms)</code></div>
+              <div>ROLLOVER CYCLE: <code>4,294,967,295 ms (49.7 Days)</code></div>
+              <div>ACTIVE CONCURRENT TASKS: <b style="color:var(--green)">3 Independent Loops</b></div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-<section id="challenges"><div class="section-head"><div><div class="eyebrow">Engineering Challenges</div><h2>Laboratory Extensions</h2><p class="lead">Construct robust real-world embedded systems using asynchronous timers.</p></div></div>
-<div class="three grid"><div class="card challenge"><h3>01 &middot; 3-Phase Traffic Intersection</h3><p class="muted">Design a state machine managing Red (5s), Yellow (1.5s), and Green (5s) lights while polling pedestrian pushbuttons.</p><span class="tag">STATE: enum State { RED, YELLOW, GREEN }</span></div><div class="card challenge"><h3>02 &middot; Non-Blocking Piezo Tone Sequencer</h3><p class="muted">Play complex audio melodies with variable note durations without halting the main microcontroller execution loop.</p><span class="tag">ARRAY: const int noteDurations[]</span></div><div class="card challenge"><h3>03 &middot; System Heartbeat &amp; Watchdog</h3><p class="muted">Toggle a system status beacon at 2Hz. If any loop takes &gt;50ms, trigger a hardware reset via AVR WDT.</p><span class="tag">AVR: #include &lt;avr/wdt.h&gt;</span></div></div></section>
+      <section id="challenges">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Engineering Challenges</div>
+            <h2>Laboratory Extensions</h2>
+            <p class="lead">Construct robust real-world embedded systems using asynchronous timers.</p>
+          </div>
+        </div>
+        <div class="three grid">
+          <div class="card challenge">
+            <h3>01 &middot; 3-Phase Traffic Intersection</h3>
+            <p class="muted">Design a state machine managing Red (5s), Yellow (1.5s), and Green (5s) lights while
+              polling pedestrian pushbuttons.</p><span class="tag">STATE: enum State { RED, YELLOW, GREEN }</span>
+          </div>
+          <div class="card challenge">
+            <h3>02 &middot; Non-Blocking Piezo Tone Sequencer</h3>
+            <p class="muted">Play complex audio melodies with variable note durations without halting the main
+              microcontroller execution loop.</p><span class="tag">ARRAY: const int noteDurations[]</span>
+          </div>
+          <div class="card challenge">
+            <h3>03 &middot; System Heartbeat &amp; Watchdog</h3>
+            <p class="muted">Toggle a system status beacon at 2Hz. If any loop takes &gt;50ms, trigger a hardware reset
+              via AVR WDT.</p><span class="tag">AVR: #include &lt;avr/wdt.h&gt;</span>
+          </div>
+        </div>
+      </section>
 
-<section><div class="section-head"><div><div class="eyebrow">Technical Summary</div><h2>Engineering Concept Mastery</h2></div></div><div class="card simple"><p>Core Takeaway:</p><div class="callout"><b>&ldquo;Cooperative multitasking uses the hardware Timer0 tick counter accessed via millis() to determine when discrete tasks should execute. Subtraction arithmetic eliminates rollover errors and guarantees full CPU availability for high-speed sensor integration.&rdquo;</b></div></div></section>
-</div></main>
-<footer><div class="container footer">Arduino Hardware Lab &middot; Professional Engineering Notebook</div></footer>
+      <section>
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Technical Summary</div>
+            <h2>Engineering Concept Mastery</h2>
+          </div>
+        </div>
+        <div class="card simple">
+          <p>Core Takeaway:</p>
+          <div class="callout"><b>&ldquo;Cooperative multitasking uses the hardware Timer0 tick counter accessed via
+              millis() to determine when discrete tasks should execute. Subtraction arithmetic eliminates rollover
+              errors and guarantees full CPU availability for high-speed sensor integration.&rdquo;</b></div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer>
+    <div class="container footer">Arduino Hardware Lab &middot; Professional Engineering Notebook</div>
+  </footer>
 
-<script>
-const ledFast=document.getElementById('ledFast'),ledSlow=document.getElementById('ledSlow'),textFast=document.getElementById('textFast'),textSlow=document.getElementById('textSlow'),heroUptime=document.getElementById('heroUptime'),simUptime=document.getElementById('simUptime'),p1Fill=document.getElementById('p1Fill'),p2Fill=document.getElementById('p2Fill'),p3Fill=document.getElementById('p3Fill'),p1Text=document.getElementById('p1Text'),p2Text=document.getElementById('p2Text'),p3Text=document.getElementById('p3Text'),fastToggles=document.getElementById('fastToggles'),slowToggles=document.getElementById('slowToggles'),btnDelay=document.getElementById('btnDelayInjection'),schedStatus=document.getElementById('schedStatus'),serialLines=document.getElementById('serialLines');
-let startTime=Date.now(),freezeUntil=0,stateFast=false,stateSlow=false,fastCount=0,slowCount=0,t1Start=Date.now(),t2Start=Date.now(),t3Start=Date.now();
-btnDelay.addEventListener('click',()=>{freezeUntil=Date.now()+2000;schedStatus.innerHTML='<span style="color:var(--red)"><b>CPU FROZEN in delay(2000)!</b> All tasks stalled, timer interrupts halted.</span>';setTimeout(()=>{schedStatus.innerHTML='<b>Cooperative Scheduler Status:</b> Running at 16MHz clock with zero CPU blocks.';},2000)});
-function logSerial(up,f,s){let line=document.createElement('div');line.className='serialline';line.innerHTML=`<span>${up}s</span><span>${f?'ON':'OFF'}</span><span>${s?'ON':'OFF'}</span>`;serialLines.prepend(line);while(serialLines.children.length>7)serialLines.lastChild.remove()}
-setInterval(()=>{let now=Date.now();if(now<freezeUntil)return;let up=((now-startTime)/1000).toFixed(1);heroUptime.textContent=Math.floor(up);simUptime.textContent=up+' s';let e1=now-t1Start,pct1=Math.min(100,(e1/250)*100);p1Fill.style.width=pct1+'%';p1Text.textContent=Math.round(pct1)+'%';if(e1>=250){t1Start=now;stateFast=!stateFast;fastCount++;fastToggles.textContent=fastCount;ledFast.className='led-circle '+(stateFast?'active-fast':'');textFast.textContent=stateFast?'ON':'OFF';textFast.style.color=stateFast?'var(--cyan)':'var(--muted)'}let e2=now-t2Start,pct2=Math.min(100,(e2/1000)*100);p2Fill.style.width=pct2+'%';p2Text.textContent=Math.round(pct2)+'%';if(e2>=1000){t2Start=now;stateSlow=!stateSlow;slowCount++;slowToggles.textContent=slowCount;ledSlow.className='led-circle '+(stateSlow?'active-slow':'');textSlow.textContent=stateSlow?'ON':'OFF';textSlow.style.color=stateSlow?'var(--accent)':'var(--muted)'}let e3=now-t3Start,pct3=Math.min(100,(e3/2000)*100);p3Fill.style.width=pct3+'%';p3Text.textContent=Math.round(pct3)+'%';if(e3>=2000){t3Start=now;logSerial(Math.floor(up),stateFast,stateSlow)}},25);
-logSerial(0,false,false);
-const basic=`/* Blink Without Delay Fundamental Pattern */\n\nconst int LED_PIN = 13;\nint ledState = LOW;\nunsigned long previousMillis = 0;\nconst long interval = 1000;\n\nvoid setup() {\n  pinMode(LED_PIN, OUTPUT);\n}\n\nvoid loop() {\n  unsigned long currentMillis = millis();\n  if (currentMillis - previousMillis >= interval) {\n    previousMillis = currentMillis;\n    ledState = !ledState;\n    digitalWrite(LED_PIN, ledState);\n  }\n}`;
-const full=`/*\n * Module: Non-Blocking Concurrent Timers & Multitasking\n */\n\nstruct TaskTimer {\n  unsigned long previousMillis;\n  unsigned long interval;\n};\n\nTaskTimer taskFast      = {0, 250};\nTaskTimer taskSlow      = {0, 1000};\nTaskTimer taskTelemetry = {0, 2000};\n\nconst int PIN_FAST = 11;\nconst int PIN_SLOW = 12;\n\nbool stateFast = false;\nbool stateSlow = false;\n\nvoid setup() {\n  pinMode(PIN_FAST, OUTPUT);\n  pinMode(PIN_SLOW, OUTPUT);\n  Serial.begin(9600);\n}\n\nvoid loop() {\n  unsigned long now = millis();\n  if (now - taskFast.previousMillis >= taskFast.interval) {\n    taskFast.previousMillis = now;\n    stateFast = !stateFast;\n    digitalWrite(PIN_FAST, stateFast);\n  }\n  if (now - taskSlow.previousMillis >= taskSlow.interval) {\n    taskSlow.previousMillis = now;\n    stateSlow = !stateSlow;\n    digitalWrite(PIN_SLOW, stateSlow);\n  }\n  if (now - taskTelemetry.previousMillis >= taskTelemetry.interval) {\n    taskTelemetry.previousMillis = now;\n    Serial.print("[UPTIME] ");\n    Serial.print(now / 1000);\n    Serial.print("s | Fast: ");\n    Serial.print(stateFast ? "ON" : "OFF");\n    Serial.print(" | Slow: ");\n    Serial.println(stateSlow ? "ON" : "OFF");\n  }\n}`;
-function copyText(t,b){navigator.clipboard.writeText(t).then(()=>{let old=b.textContent;b.textContent='Copied ✓';setTimeout(()=>b.textContent=old,1200)})}
-function copyBasic(){copyText(basic,event.target)}function copyFull(){copyText(full,event.target)}
-</script>
-</body></html>
+  <script>
+    const ledFast = document.getElementById('ledFast'), ledSlow = document.getElementById('ledSlow'), textFast = document.getElementById('textFast'), textSlow = document.getElementById('textSlow'), heroUptime = document.getElementById('heroUptime'), simUptime = document.getElementById('simUptime'), p1Fill = document.getElementById('p1Fill'), p2Fill = document.getElementById('p2Fill'), p3Fill = document.getElementById('p3Fill'), p1Text = document.getElementById('p1Text'), p2Text = document.getElementById('p2Text'), p3Text = document.getElementById('p3Text'), fastToggles = document.getElementById('fastToggles'), slowToggles = document.getElementById('slowToggles'), btnDelay = document.getElementById('btnDelayInjection'), schedStatus = document.getElementById('schedStatus'), serialLines = document.getElementById('serialLines');
+    let startTime = Date.now(), freezeUntil = 0, stateFast = false, stateSlow = false, fastCount = 0, slowCount = 0, t1Start = Date.now(), t2Start = Date.now(), t3Start = Date.now();
+    btnDelay.addEventListener('click', () => { freezeUntil = Date.now() + 2000; schedStatus.innerHTML = '<span style="color:var(--red)"><b>CPU FROZEN in delay(2000)!</b> All tasks stalled, timer interrupts halted.</span>'; setTimeout(() => { schedStatus.innerHTML = '<b>Cooperative Scheduler Status:</b> Running at 16MHz clock with zero CPU blocks.'; }, 2000) });
+    function logSerial(up, f, s) { let line = document.createElement('div'); line.className = 'serialline'; line.innerHTML = `<span>${up}s</span><span>${f ? 'ON' : 'OFF'}</span><span>${s ? 'ON' : 'OFF'}</span>`; serialLines.prepend(line); while (serialLines.children.length > 7) serialLines.lastChild.remove() }
+    setInterval(() => { let now = Date.now(); if (now < freezeUntil) return; let up = ((now - startTime) / 1000).toFixed(1); heroUptime.textContent = Math.floor(up); simUptime.textContent = up + ' s'; let e1 = now - t1Start, pct1 = Math.min(100, (e1 / 250) * 100); p1Fill.style.width = pct1 + '%'; p1Text.textContent = Math.round(pct1) + '%'; if (e1 >= 250) { t1Start = now; stateFast = !stateFast; fastCount++; fastToggles.textContent = fastCount; ledFast.className = 'led-circle ' + (stateFast ? 'active-fast' : ''); textFast.textContent = stateFast ? 'ON' : 'OFF'; textFast.style.color = stateFast ? 'var(--cyan)' : 'var(--muted)' } let e2 = now - t2Start, pct2 = Math.min(100, (e2 / 1000) * 100); p2Fill.style.width = pct2 + '%'; p2Text.textContent = Math.round(pct2) + '%'; if (e2 >= 1000) { t2Start = now; stateSlow = !stateSlow; slowCount++; slowToggles.textContent = slowCount; ledSlow.className = 'led-circle ' + (stateSlow ? 'active-slow' : ''); textSlow.textContent = stateSlow ? 'ON' : 'OFF'; textSlow.style.color = stateSlow ? 'var(--accent)' : 'var(--muted)' } let e3 = now - t3Start, pct3 = Math.min(100, (e3 / 2000) * 100); p3Fill.style.width = pct3 + '%'; p3Text.textContent = Math.round(pct3) + '%'; if (e3 >= 2000) { t3Start = now; logSerial(Math.floor(up), stateFast, stateSlow) } }, 25);
+    logSerial(0, false, false);
+    const basic = `/* Blink Without Delay Fundamental Pattern */\n\nconst int LED_PIN = 13;\nint ledState = LOW;\nunsigned long previousMillis = 0;\nconst long interval = 1000;\n\nvoid setup() {\n  pinMode(LED_PIN, OUTPUT);\n}\n\nvoid loop() {\n  unsigned long currentMillis = millis();\n  if (currentMillis - previousMillis >= interval) {\n    previousMillis = currentMillis;\n    ledState = !ledState;\n    digitalWrite(LED_PIN, ledState);\n  }\n}`;
+    const full = `/*\n * Module: Non-Blocking Concurrent Timers & Multitasking\n */\n\nstruct TaskTimer {\n  unsigned long previousMillis;\n  unsigned long interval;\n};\n\nTaskTimer taskFast      = {0, 250};\nTaskTimer taskSlow      = {0, 1000};\nTaskTimer taskTelemetry = {0, 2000};\n\nconst int PIN_FAST = 11;\nconst int PIN_SLOW = 12;\n\nbool stateFast = false;\nbool stateSlow = false;\n\nvoid setup() {\n  pinMode(PIN_FAST, OUTPUT);\n  pinMode(PIN_SLOW, OUTPUT);\n  Serial.begin(9600);\n}\n\nvoid loop() {\n  unsigned long now = millis();\n  if (now - taskFast.previousMillis >= taskFast.interval) {\n    taskFast.previousMillis = now;\n    stateFast = !stateFast;\n    digitalWrite(PIN_FAST, stateFast);\n  }\n  if (now - taskSlow.previousMillis >= taskSlow.interval) {\n    taskSlow.previousMillis = now;\n    stateSlow = !stateSlow;\n    digitalWrite(PIN_SLOW, stateSlow);\n  }\n  if (now - taskTelemetry.previousMillis >= taskTelemetry.interval) {\n    taskTelemetry.previousMillis = now;\n    Serial.print("[UPTIME] ");\n    Serial.print(now / 1000);\n    Serial.print("s | Fast: ");\n    Serial.print(stateFast ? "ON" : "OFF");\n    Serial.print(" | Slow: ");\n    Serial.println(stateSlow ? "ON" : "OFF");\n  }\n}`;
+    function copyText(t, b) { navigator.clipboard.writeText(t).then(() => { let old = b.textContent; b.textContent = 'Copied ✓'; setTimeout(() => b.textContent = old, 1200) }) }
+    function copyBasic() { copyText(basic, event.target) } function copyFull() { copyText(full, event.target) }
+  </script>
+</body>
+
+</html>
