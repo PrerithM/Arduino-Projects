@@ -17,6 +17,7 @@ This module demonstrates how the Arduino Uno uses its internal **10-bit Analog-t
 ## 💡 The Mental Model
 
 Imagine a water faucet connected to a pipe:
+
 - **Turning the faucet closed** shuts off water pressure completely (**0V / 0 counts**).
 - **Turning the faucet wide open** releases maximum water pressure (**5V / 1023 counts**).
 - **Halfway open** delivers exactly half pressure (**2.5V / 512 counts**).
@@ -29,11 +30,11 @@ The potentiometer acts as this faucet for electrical pressure (voltage). Pin **A
 
 You only need **three wires** to wire up this experiment:
 
-| Arduino Pin | Potentiometer Terminal | Function | Description |
-| :--- | :--- | :--- | :--- |
-| **`5V`** | Outer Terminal (Pin 1) | Power Rail | Supplies +5.0V reference potential |
-| **`A0`** | Center Wiper (Pin 2) | Analog Input | Variable voltage divided between 0V and 5V |
-| **`GND`** | Opposite Outer Leg (Pin 3) | Ground Reference | Common 0V reference return |
+| Arduino Pin       | Potentiometer Terminal     | Function         | Description                                |
+| :---------------- | :------------------------- | :--------------- | :----------------------------------------- |
+| **`5V`**  | Outer Terminal (Pin 1)     | Power Rail       | Supplies +5.0V reference potential         |
+| **`A0`**  | Center Wiper (Pin 2)       | Analog Input     | Variable voltage divided between 0V and 5V |
+| **`GND`** | Opposite Outer Leg (Pin 3) | Ground Reference | Common 0V reference return                 |
 
 ```
        +5V Rail ─────────┐ (Outer Leg)
@@ -51,26 +52,47 @@ You only need **three wires** to wire up this experiment:
 ## 🔬 How the Hardware Works (Under the Hood)
 
 ### 1. The Voltage Divider Law
+
 A 10kΩ potentiometer divides the total resistance $R_{total} = R_1 + R_2$. The center wiper taps off a fraction of that voltage:
-$$V_{out} = V_{in} \times \frac{R_2}{R_1 + R_2}$$
+
+$$
+V_{out} = V_{in} \times \frac{R_2}{R_1 + R_2}
+$$
 
 ### 2. The 10-Bit ADC Mystery (Why 0 to 1023?)
+
 The ATmega328P microcontroller has a **10-bit Successive Approximation ADC**.
+
 - "10-bit" means $2^{10} = 1024$ discrete measurement steps.
 - Counting starts at 0, so the numbers range from **0 to 1023**.
 - Each step corresponds to:
-  $$\text{Resolution} = \frac{5.000\text{ V}}{1024} \approx 4.887\text{ mV per step}$$
+  $$
+  \text{Resolution} = \frac{5.000\text{ V}}{1024} \approx 4.887\text{ mV per step}
+  $$
 
 ### 3. Converting Raw ADC to Physical Voltage
+
 To reconstruct the real-world voltage in firmware:
-$$\text{Voltage} = \frac{\text{Raw ADC Value} \times 5.0}{1023.0}$$
+
+$$
+\text{Voltage} = \frac{\text{Raw ADC Value} \times 5.0}{1023.0}
+$$
+
 For example, if `analogRead(A0)` returns **512**:
-$$\text{Voltage} = \frac{512 \times 5.0}{1023.0} \approx 2.50\text{ Volts}$$
+
+$$
+\text{Voltage} = \frac{512 \times 5.0}{1023.0} \approx 2.50\text{ Volts}
+$$
 
 ### 4. Digital Noise Filtering (10-Sample Moving Average)
+
 Breadboard wires act like tiny antennas picking up electrical interference from room lights and Wi-Fi. An unfiltered reading might jump: `501 → 509 → 502 → 507`.
 By storing the last 10 readings in a circular buffer and computing the rolling average:
-$$\bar{x} = \frac{1}{10} \sum_{i=0}^{9} x_i$$
+
+$$
+\bar{x} = \frac{1}{10} \sum_{i=0}^{9} x_i
+$$
+
 We smooth out random fluctuations in constant $O(1)$ time.
 
 ---
@@ -138,13 +160,13 @@ void loop() {
 
 ### Explanation Table
 
-| Code Snippet | What It Tells Arduino to Do |
-| :--- | :--- |
-| `analogRead(A0)` | Connects internal ADC channel to A0, samples voltage, and returns integer 0–1023. |
-| `total = total - readings[readIndex]` | Drops the oldest stored reading from the sum before replacing it. |
-| `readIndex = (readIndex + 1) % 10` | The modulo operator `%` automatically resets index to 0 when it reaches 10. |
-| `(averageRaw * 5.0) / 1023.0` | Converts integer steps into human-readable floating point volts. |
-| `map(averageRaw, 0, 1023, 0, 100)` | Linearly re-scales the 0–1023 range into 0–100%. |
+| Code Snippet                            | What It Tells Arduino to Do                                                        |
+| :-------------------------------------- | :--------------------------------------------------------------------------------- |
+| `analogRead(A0)`                      | Connects internal ADC channel to A0, samples voltage, and returns integer 0–1023. |
+| `total = total - readings[readIndex]` | Drops the oldest stored reading from the sum before replacing it.                  |
+| `readIndex = (readIndex + 1) % 10`    | The modulo operator`%` automatically resets index to 0 when it reaches 10.       |
+| `(averageRaw * 5.0) / 1023.0`         | Converts integer steps into human-readable floating point volts.                   |
+| `map(averageRaw, 0, 1023, 0, 100)`    | Linearly re-scales the 0–1023 range into 0–100%.                                 |
 
 ---
 
@@ -167,6 +189,7 @@ void loop() {
 ## 🚀 What to Build Next
 
 This analog sampling technique is the exact foundation used in:
+
 - **Audio Equalizers & Mixers** (slide faders)
 - **Robotic Arm Joy-Sticks** (two potentiometers for X and Y axis control)
 - **Sensor Interfaces** (Light-dependent resistors, thermistors, and gas sensors are all analog voltage dividers!)

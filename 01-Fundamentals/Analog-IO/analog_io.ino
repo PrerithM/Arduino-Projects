@@ -1,6 +1,6 @@
 /*
  * Module: Analog I/O & Continuous Voltage Measurement
- * Description: 
+ * Description:
  *
  * Reads a 10k potentiometer via ADC pin A0 with a 10-sample
  * moving average filter to eliminate electrical noise.
@@ -9,14 +9,14 @@
 const int ANALOG_PIN = A0;
 const int NUM_READINGS = 10;
 
-int readings[NUM_READINGS];      // Circular buffer for readings
-int readIndex = 0;               // Current index in buffer
-long total = 0;                  // Running total
-int averageRaw = 0;              // Average ADC value
+int readings[NUM_READINGS]; // Circular buffer for readings
+int readIndex = 0;          // Current index in buffer
+long total = 0;             // Running total
+int averageRaw = 0;         // Average ADC value
 
 void setup() {
   Serial.begin(9600);
-  
+
   // Initialize all buffer readings to 0
   for (int thisReading = 0; thisReading < NUM_READINGS; thisReading++) {
     readings[thisReading] = 0;
